@@ -1,0 +1,5 @@
+{
+  "name": "AI Model Workbench - Agentic Governance",
+  "description": "A sophisticated AI workbench for Data Scientists and Supervisors to discover, compare, and manage over 140+ ML models using an agentic conversational interface.",
+  "requestFramePermissions": []
+}
