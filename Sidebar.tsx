@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Persona } from '../types';
+import { Persona } from './types';
 
 interface SidebarProps {
   persona: Persona;
@@ -48,16 +48,16 @@ const Sidebar: React.FC<SidebarProps> = ({ persona, setPersona, activeView, setA
           <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Explorer Hubs</div>
           <nav className="space-y-1">
             <NavItem 
-              icon="📊" 
-              label="Model Registry" 
-              active={activeView === 'Registry'} 
-              onClick={() => setActiveView('Registry')}
-            />
-            <NavItem 
               icon="⚡" 
               label="AI Workspace" 
               active={activeView === 'Workspace'} 
               onClick={() => setActiveView('Workspace')}
+            />
+            <NavItem 
+              icon="📊" 
+              label="Model Registry" 
+              active={activeView === 'Registry'} 
+              onClick={() => setActiveView('Registry')}
             />
             <NavItem 
               icon="🤖" 

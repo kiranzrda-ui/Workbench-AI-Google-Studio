@@ -16,18 +16,23 @@ const PerformanceProfile: React.FC<PerformanceProfileProps> = ({ model }) => {
         <MetricCard label="Accuracy" value={`${(model.accuracy * 100).toFixed(1)}%`} color="text-indigo-600" />
         <MetricCard label="Latency" value={`${model.latency}ms`} color="text-purple-600" />
         <MetricCard label="Data Drift" value={`${(model.data_drift * 100).toFixed(1)}%`} color={model.data_drift > 0.08 ? "text-rose-600" : "text-emerald-600"} />
-        <MetricCard label="Status" value={model.monitoring_status} color={model.monitoring_status === 'Healthy' ? "text-emerald-600" : "text-amber-600"} />
+        <MetricCard label="Throughput" value={`${model.throughput} r/m`} color="text-slate-900" />
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xs font-bold text-slate-700 uppercase tracking-widest flex items-center gap-2">
             <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>
-            Global Performance Profile: {model.name}
+            Performance & Insights: {model.name}
           </h3>
-          <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
-            v{model.model_version}
-          </span>
+          <div className="flex gap-2">
+            <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+              Error Rate: {(model.error_rate * 100).toFixed(2)}%
+            </span>
+            <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+              v{model.model_version}
+            </span>
+          </div>
         </div>
         
         <ShapPlot modelId={model.id} />
@@ -40,9 +45,9 @@ const PerformanceProfile: React.FC<PerformanceProfileProps> = ({ model }) => {
              </div>
            </div>
            <div className="space-y-2">
-             <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Last Retrained</div>
+             <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Operational Health</div>
              <div className="text-xs font-bold text-slate-700 bg-slate-50 px-3 py-2 rounded-xl border border-slate-100">
-               {model.last_retrained_date}
+               CPU: {model.cpu_util}% • Mem: {model.mem_util}%
              </div>
            </div>
         </div>

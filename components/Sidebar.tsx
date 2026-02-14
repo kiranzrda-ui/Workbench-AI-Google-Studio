@@ -12,7 +12,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ persona, setPersona, activeView, setActiveView, stats }) => {
   return (
-    <aside className="w-64 border-r border-slate-200 bg-white flex flex-col p-6 hidden md:flex shrink-0">
+    <aside className="w-64 border-r border-slate-200 bg-white flex flex-col p-6 hidden md:flex shrink-0 print:hidden">
       <div className="mb-10">
         <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Active Persona</div>
         <div className="flex flex-col gap-2">
@@ -35,29 +35,19 @@ const Sidebar: React.FC<SidebarProps> = ({ persona, setPersona, activeView, setA
 
       <div className="flex-1 space-y-8 overflow-y-auto">
         <div>
-          <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Workspace Statistics</div>
-          <div className="space-y-4">
-            <StatRow label="ML Models" value={stats.total} />
-            <StatRow label="AI Agents" value={stats.agents} color="text-purple-600" />
-            <StatRow label="Pending" value={stats.pending} color="text-amber-600" />
-            <StatRow label="Critical" value={stats.critical} color="text-rose-600" />
-          </div>
-        </div>
-
-        <div>
           <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Explorer Hubs</div>
           <nav className="space-y-1">
-            <NavItem 
-              icon="📊" 
-              label="Model Registry" 
-              active={activeView === 'Registry'} 
-              onClick={() => setActiveView('Registry')}
-            />
             <NavItem 
               icon="⚡" 
               label="AI Workspace" 
               active={activeView === 'Workspace'} 
               onClick={() => setActiveView('Workspace')}
+            />
+            <NavItem 
+              icon="📊" 
+              label="Model Registry" 
+              active={activeView === 'Registry'} 
+              onClick={() => setActiveView('Registry')}
             />
             <NavItem 
               icon="🤖" 
@@ -71,7 +61,23 @@ const Sidebar: React.FC<SidebarProps> = ({ persona, setPersona, activeView, setA
               active={activeView === 'Governance'} 
               onClick={() => setActiveView('Governance')}
             />
+            <NavItem 
+              icon="💿" 
+              label="Data Management" 
+              active={activeView === 'Data'} 
+              onClick={() => setActiveView('Data')}
+            />
           </nav>
+        </div>
+
+        <div>
+          <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Workspace Statistics</div>
+          <div className="space-y-4">
+            <StatRow label="ML Models" value={stats.total} />
+            <StatRow label="AI Agents" value={stats.agents} color="text-purple-600" />
+            <StatRow label="Pending" value={stats.pending} color="text-amber-600" />
+            <StatRow label="Critical" value={stats.critical} color="text-rose-600" />
+          </div>
         </div>
       </div>
 
@@ -95,7 +101,7 @@ const StatRow = ({ label, value, color = "text-slate-700" }: any) => (
   </div>
 );
 
-const NavItem = ({ icon, label, active, onClick }: any) => (
+const NavItem = ({ icon, label, active, onClick, badge }: any) => (
   <button 
     onClick={onClick}
     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-left group ${
@@ -106,7 +112,12 @@ const NavItem = ({ icon, label, active, onClick }: any) => (
   >
     <span className="text-base transition-all">{icon}</span>
     <span className="text-sm">{label}</span>
-    {active && <div className="ml-auto w-1 h-3 bg-purple-500 rounded-full"></div>}
+    {badge && (
+      <span className="ml-auto text-[8px] bg-indigo-500 text-white px-1.5 py-0.5 rounded-full font-black animate-pulse shadow-sm shadow-indigo-500/50">
+        {badge}
+      </span>
+    )}
+    {active && !badge && <div className="ml-auto w-1 h-3 bg-purple-500 rounded-full"></div>}
   </button>
 );
 

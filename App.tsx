@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Persona, MLModel, AIAgent, ChatMessage, ApprovalRequest, ExternalAsset } from './types';
 import { INITIAL_MODELS, INITIAL_AGENTS } from './constants';
 import { chatWithAgent } from './geminiService';
@@ -41,8 +41,8 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!isAuthorized) return;
     const greeting = persona === 'Data Scientist' 
-      ? "Aura OS active. I'm monitoring 145 models and 112 autonomous agents. Are you here to discover an existing agent for your retail workflow, or register a new model experiment?"
-      : "Supervisor Hub engaged. Drift detected in 3 models; 1 agent execution cost spike flagged. How can I help you optimize governance today?";
+      ? "Aura OS active. Monitoring 145 models. How can I help you with data lineage or hyperparameters today?"
+      : "Supervisor Hub engaged. Drift detected in 3 models. How can I help you optimize governance?";
     setMessages([{ role: 'model', content: greeting, timestamp: new Date() }]);
   }, [persona, isAuthorized]);
 
@@ -59,9 +59,9 @@ const App: React.FC = () => {
       chatHistory.push({ role: 'user', parts: [{ text }] });
 
       const response = await chatWithAgent(chatHistory, persona, models, agents, lastDisplayedAssetIds);
-      const processedData = processPayload(response.intent, response.payload, models, agents, approvalQueue);
+      const processedData = processPayload(response.intent, response.payload, models, agents, approvalQueue, lastDisplayedAssetIds);
 
-      if (['SEARCH', 'SEARCH_AGENTS', 'TRENDS', 'COMPARE', 'REVENUE_IMPACT', 'MODEL_OWNERSHIP', 'DATA_LINEAGE', 'HYPERPARAMETERS', 'DATA_CATALOG'].includes(response.intent)) {
+      if (['SEARCH', 'TRENDS', 'COMPARE', 'REVENUE_IMPACT', 'MODEL_OWNERSHIP', 'DATA_LINEAGE', 'HYPERPARAMETERS', 'DATA_CATALOG', 'PERFORMANCE_PROFILE'].includes(response.intent)) {
         if (processedData) {
           const ids = Array.isArray(processedData) ? processedData.map((d: any) => d.id || d.name) : [(processedData as any).id || (processedData as any).name];
           setLastDisplayedAssetIds(ids);
@@ -143,8 +143,15 @@ function mapIntentToMetaType(intent: string): ChatMessage['metadata']['type'] {
   }
 }
 
-function processPayload(intent: string, payload: any, allModels: MLModel[], allAgents: AIAgent[], queue: ApprovalRequest[]) {
-  const findModel = (id: string) => allModels.find(m => m.id === id || m.name.toLowerCase().includes(id.toLowerCase()));
+function processPayload(intent: string, payload: any, allModels: MLModel[], allAgents: AIAgent[], queue: ApprovalRequest[], lastIds: string[]) {
+  const findModel = (id: string) => {
+    if (!id) return null;
+    return allModels.find(m => 
+      m.id === id || 
+      m.name.toLowerCase() === id.toLowerCase() || 
+      m.name.toLowerCase().includes(id.toLowerCase())
+    );
+  };
   
   if (intent === 'SEARCH' || intent === 'TRENDS') {
     const filters = payload?.filters || {};
@@ -158,7 +165,8 @@ function processPayload(intent: string, payload: any, allModels: MLModel[], allA
 
   if (['REVENUE_IMPACT', 'MODEL_OWNERSHIP', 'DATA_LINEAGE', 'HYPERPARAMETERS', 'DATA_CATALOG', 'PERFORMANCE_PROFILE'].includes(intent)) {
     const id = payload?.metadata?.modelId || payload?.modelIds?.[0];
-    return id ? findModel(id) : allModels[0];
+    const target = findModel(id) || findModel(lastIds[0]);
+    return target || allModels[0];
   }
 
   if (intent === 'SEARCH_AGENTS') {

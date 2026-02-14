@@ -24,6 +24,14 @@ interface ChatWindowProps {
   onRegister: (data: Partial<MLModel>) => void;
 }
 
+const DEMO_PROMPTS = [
+  { label: "Performance Audit", prompt: "Run performance audit for m-1" },
+  { label: "Data Lineage", prompt: "Show me the data lineage for m-1" },
+  { label: "Tuning Specs", prompt: "What are the hyperparameters for FraudGuard?" },
+  { label: "Revenue Scan", prompt: "Which model has the highest revenue impact?" },
+  { label: "Ownership", prompt: "Who is the owner of SupplySense?" }
+];
+
 const ChatWindow: React.FC<ChatWindowProps> = ({ messages, onSend, isTyping, persona, onImport, onRegister }) => {
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -97,12 +105,23 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, onSend, isTyping, per
       </div>
 
       <div className="p-6 border-t border-slate-200 bg-white/70 backdrop-blur-xl">
+        <div className="max-w-4xl mx-auto mb-4 flex flex-wrap gap-2">
+          {DEMO_PROMPTS.map((d, i) => (
+            <button 
+              key={i}
+              onClick={() => onSend(d.prompt)}
+              className="text-[10px] font-bold px-3 py-1.5 bg-white border border-slate-200 rounded-full text-slate-500 hover:border-purple-300 hover:text-purple-600 transition-all shadow-sm"
+            >
+              {d.label}
+            </button>
+          ))}
+        </div>
         <form onSubmit={handleSubmit} className="max-w-4xl mx-auto flex gap-3 relative">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={persona === 'Data Scientist' ? "Try 'show lineage for m-1' or 'hyperparams for FraudGuard'..." : "Try 'review pending models' or 'financial audit'..."}
+            placeholder={persona === 'Data Scientist' ? "Ask about performance, lineage, or hyperparams..." : "Review pending approvals or run audit..."}
             className="flex-1 bg-white border border-slate-200 rounded-2xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 placeholder:text-slate-400 transition-all shadow-sm"
           />
           <button 

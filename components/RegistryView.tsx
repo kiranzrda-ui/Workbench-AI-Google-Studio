@@ -91,7 +91,7 @@ const RegistryView: React.FC<RegistryViewProps> = ({ models }) => {
       {/* Enhanced Detail Modal */}
       {selectedModel && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-8 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
               <div>
                 <h3 className="text-2xl font-bold text-slate-900">{selectedModel.name}</h3>
@@ -116,21 +116,50 @@ const RegistryView: React.FC<RegistryViewProps> = ({ models }) => {
               ))}
             </div>
 
-            <div className="p-8 min-h-[400px]">
+            <div className="p-8 overflow-y-auto max-h-[60vh]">
               {activeTab === 'Overview' && (
                 <div className="space-y-8 animate-in fade-in">
-                  <div className="grid grid-cols-3 gap-6">
+                  <div className="grid grid-cols-4 gap-4">
                     <MetricBox label="Stage" value={selectedModel.model_stage} />
-                    <MetricBox label="Format" value={selectedModel.data_catalog.format} />
-                    <MetricBox label="Records" value={selectedModel.data_catalog.record_count} />
+                    <MetricBox label="Accuracy" value={`${(selectedModel.accuracy * 100).toFixed(1)}%`} />
+                    <MetricBox label="Latency" value={`${selectedModel.latency}ms`} />
+                    <MetricBox label="Health" value={selectedModel.monitoring_status} />
                   </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Model Performance</h4>
+                      <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
+                        <DetailRow label="Throughput" value={`${selectedModel.throughput} req/min`} />
+                        <DetailRow label="Error Rate" value={`${(selectedModel.error_rate * 100).toFixed(2)}%`} />
+                        <DetailRow label="Data Drift" value={`${(selectedModel.data_drift * 100).toFixed(1)}%`} />
+                        <DetailRow label="CPU / Mem" value={`${selectedModel.cpu_util}% / ${selectedModel.mem_util}%`} />
+                        <DetailRow label="Monthly Usage" value={`${selectedModel.usage.toLocaleString()} reqs`} />
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Data & Governance</h4>
+                      <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
+                        <DetailRow label="Training Dataset" value={selectedModel.data_catalog.dataset_name} />
+                        <DetailRow label="Records" value={selectedModel.data_catalog.record_count} />
+                        <DetailRow label="Sensitive (PHI)" value={selectedModel.data_catalog.phi_data ? 'Yes (Strict)' : 'No'} />
+                        <DetailRow label="SLA Tier" value={selectedModel.sla_tier} />
+                        <DetailRow label="Inference ID" value={selectedModel.inference_endpoint_id} />
+                      </div>
+                    </div>
+                  </div>
+
                   <div>
-                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Model Catalog Details</h4>
-                    <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
-                      <DetailRow label="Primary Dataset" value={selectedModel.data_catalog.dataset_name} />
-                      <DetailRow label="Sensitive (PHI)" value={selectedModel.data_catalog.phi_data ? 'Yes (Strict Access)' : 'No'} />
-                      <DetailRow label="Inference ID" value={selectedModel.inference_endpoint_id} />
-                      <DetailRow label="SLA Tier" value={selectedModel.sla_tier} />
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Usage & Impact</h4>
+                    <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm grid grid-cols-2 gap-8">
+                       <div className="flex justify-between items-center">
+                          <span className="text-xs text-slate-500">Revenue Impact:</span>
+                          <span className="text-sm font-bold text-emerald-600">${(selectedModel.revenue_impact / 1000).toFixed(0)}k/year</span>
+                       </div>
+                       <div className="flex justify-between items-center">
+                          <span className="text-xs text-slate-500">User Growth:</span>
+                          <span className="text-sm font-bold text-purple-600">+{selectedModel.user_growth}%</span>
+                       </div>
                     </div>
                   </div>
                 </div>
@@ -187,7 +216,7 @@ const RegistryView: React.FC<RegistryViewProps> = ({ models }) => {
 const MetricBox = ({ label, value }: any) => (
   <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm">
     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{label}</p>
-    <p className="text-lg font-bold text-slate-800">{value}</p>
+    <p className="text-base font-bold text-slate-800">{value}</p>
   </div>
 );
 
