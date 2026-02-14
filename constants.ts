@@ -1,134 +1,85 @@
 
-import { MLModel, AIAgent, LineageStep, Hyperparameters } from './types';
+import { MLModel, AIAgent, DataSet, AutoMLPlatform, AutoMLExperiment, DataConnector, AuditLog, LineageStep } from './types';
 
-const ENTERPRISE_MODEL_TEMPLATES = [
-  { name: "FraudGuard: Real-time Transaction Scorer", domain: "Finance", type: "Classification", team: "FinSec AI Ops" },
-  { name: "SupplySense: Regional Demand Forecaster", domain: "Retail", type: "Regression", team: "Supply Chain Intelligence" },
-  { name: "Customer360: LTV Prediction Engine", domain: "Retail", type: "Regression", team: "Marketing Analytics" },
-  { name: "DeepScan: MRI Anomaly Detection", domain: "Healthcare", type: "Computer Vision", team: "Medical Imaging Core" },
-  { name: "YieldMaster: Precision Crop Forecast", domain: "Manufacturing", type: "Regression", team: "AgriTech Solutions" },
-  { name: "OptiRoute: Logistics Path Finder", domain: "Supply Chain", type: "Recommendation", team: "Logistics Optimization" },
-  { name: "SupportBot: Multilingual Sentiment Analyzer", domain: "Tech", type: "NLP", team: "Customer Success Tech" },
-  { name: "CreditRisk: Commercial Loan Scorer", domain: "Finance", type: "Classification", team: "Risk Management" },
-  { name: "TalentScout: Candidate Match Engine", domain: "HR", type: "Recommendation", team: "HR Tech AI" },
-  { name: "RetentionPredictor: Employee Churn Model", domain: "HR", type: "Classification", team: "People Analytics" },
-  { name: "InventorySync: Global Stock Optimizer", domain: "Supply Chain", type: "Recommendation", team: "Inventory Control" },
-  { name: "RouteGenius: Fleet Fuel Optimizer", domain: "Supply Chain", type: "Regression", team: "Last Mile Logistics" },
-  { name: "LegalBrief: Clause Extraction Agent", domain: "Legal", type: "NLP", team: "Legal Ops Tech" },
-  { name: "ComplianceMonitor: Regulatory Change Detector", domain: "Legal", type: "Classification", team: "Risk & Compliance" },
-  { name: "AdTarget: Real-time Bid Optimizer", domain: "Marketing", type: "Recommendation", team: "AdTech Services" },
-  { name: "CampaignLift: Incrementality Scorer", domain: "Marketing", type: "Regression", team: "Growth Analytics" },
-  { name: "SalesPipeline: Opportunity Win Scorer", domain: "Sales", type: "Classification", team: "Revenue Ops" },
-  { name: "LeadNurture: Optimal Contact Time", domain: "Sales", type: "Recommendation", team: "B2B Sales Intelligence" },
-  { name: "ChurnRadar: Subscription Retention Model", domain: "Tech", type: "Classification", team: "Growth Engineering" },
-  { name: "PredictiveMaintainer: Turbine Health", domain: "Manufacturing", type: "Regression", team: "Industrial IoT" },
-  { name: "MarketPulse: High-Frequency Sentiment", domain: "Finance", type: "NLP", team: "Trading Algorithms" },
-  { name: "PatientFlow: Bed Capacity Predictor", domain: "Healthcare", type: "Regression", team: "Hospital Operations" },
-  { name: "CodeAssist: Internal Python Linter", domain: "Tech", type: "NLP", team: "Developer Productivity" },
-  { name: "WorkforcePlanner: Seasonal Demand Match", domain: "HR", type: "Regression", team: "People Operations" },
-  { name: "ContractAI: Risk Exposure Profiler", domain: "Legal", type: "Regression", team: "General Counsel AI" },
-  { name: "VisualQC: Assembly Line Defect Detector", domain: "Manufacturing", type: "Computer Vision", team: "Smart Factory" }
+export const DATA_CONNECTORS: DataConnector[] = [
+  { id: 'c-1', name: 'Snowflake', status: 'Connected', last_sync: '2m ago', latency_ms: 12, config: { warehouse: 'AURA_COMPUTE_XL', database: 'FIN_PROD', schema: 'GOLD_DATA' } },
+  { id: 'c-2', name: 'Alteryx', status: 'Connected', last_sync: '14m ago', latency_ms: 45, config: { endpoint: 'https://alteryx.corp.net', version: '2024.1' } },
+  { id: 'c-3', name: 'S3', status: 'Connected', last_sync: 'Real-time', latency_ms: 8, config: { bucket: 'aura-main-lake-us-east-1', encryption: 'AES-256' } }
 ];
 
-const domains = ['Retail', 'Finance', 'Healthcare', 'Manufacturing', 'Tech', 'HR', 'Supply Chain', 'Legal', 'Marketing', 'Sales'] as const;
-const stages = ['Experimental', 'Staging', 'Production'] as const;
-const types = ['Regression', 'Classification', 'NLP', 'Computer Vision', 'Recommendation'] as const;
+export const AUTOML_PLATFORMS: AutoMLPlatform[] = [
+  { id: 'p-1', name: 'Google Vertex AI', provider: 'Google', status: 'Connected', capabilities: ['AutoML', 'Pipelines'], region: 'us-central1' },
+  { id: 'p-2', name: 'Azure ML Studio', provider: 'Microsoft', status: 'Connected', capabilities: ['Designer', 'SDK'], region: 'eastus2' },
+  { id: 'p-3', name: 'H2O.ai Driverless', provider: 'H2O', status: 'Syncing', capabilities: ['Time Series', 'Auto-Doc'], region: 'on-prem-cluster-01' },
+  { id: 'p-4', name: 'Oracle HeatWave', provider: 'Oracle', status: 'Connected', capabilities: ['In-DB AutoML'], region: 'us-ashburn-1' }
+];
 
-// Fix: Added explicit return type Hyperparameters and changed image_size from number[] to string 
-// to ensure the return type matches the index signature string | number | boolean.
-function generateParams(type: string): Hyperparameters {
-  switch (type) {
-    case 'NLP': return { transformer_layers: 12, attention_heads: 8, learning_rate: 2e-5, max_seq_len: 512, dropout: 0.1 };
-    case 'Regression': return { n_estimators: 1000, max_depth: 7, learning_rate: 0.05, subsample: 0.8, colsample_bytree: 0.8 };
-    case 'Classification': return { c_parameter: 1.0, kernel: 'rbf', probability_estimates: true, class_weight: 'balanced' };
-    case 'Computer Vision': return { backbone: 'ResNet50', image_size: '224x224', batch_size: 32, optimizer: 'SGD', momentum: 0.9 };
-    default: return { k_neighbors: 5, algorithm: 'auto', leaf_size: 30 };
-  }
-}
+export const MOCK_AUDIT_LOGS: AuditLog[] = [
+  { id: 'l-1', timestamp: '2024-05-20T10:00:00Z', user: 'Lead_Scientist_01', action: 'Inference Push', platform: 'Vertex AI', status: 'Success' },
+  { id: 'l-2', timestamp: '2024-05-20T10:05:00Z', user: 'System_Automaton', action: 'Drift Correction', platform: 'Azure ML', status: 'Success' },
+  { id: 'l-3', timestamp: '2024-05-20T10:15:00Z', user: 'Supervisor_Alpha', action: 'Model Approval', platform: 'Aura Core', status: 'Success' }
+];
 
-function generateLineage(domain: string, name: string): LineageStep[] {
-  return [
-    { id: '1', type: 'Source', name: `${domain}_Raw_Bucket`, status: 'Active', details: 'S3 / Azure Blob Raw Storage' },
-    { id: '2', type: 'Transform', name: 'Aura_ETL_Pipeline', status: 'Active', details: 'Spark SQL Normalization & PII Masking' },
-    { id: '3', type: 'Storage', name: 'Enterprise_Feature_Store', status: 'Active', details: 'Feature Group: v2.4_Production' },
-    { id: '4', type: 'Model', name: name, status: 'Active', details: 'Inference Graph v1.0.4' },
-  ];
-}
+export const MOCK_DATASETS: DataSet[] = [
+  { id: 'ds-1', dataset_name: 'Snowflake_Customer_Churn_Gold', format: 'Table', size: '1.2TB', record_count: '45.2M', phi_data: false, domain: 'Retail', source_platform: 'Snowflake' },
+  { id: 'ds-2', dataset_name: 'Alteryx_Telemetry_Cleaned', format: 'CSV', size: '450GB', record_count: '1.1B', phi_data: false, domain: 'Manufacturing', source_platform: 'Alteryx' },
+  { id: 'ds-3', dataset_name: 'S3_Patient_Records_PHI', format: 'Parquet', size: '85GB', record_count: '12M', phi_data: true, domain: 'Healthcare', source_platform: 'S3' }
+];
+
+const generateLineage = (modelName: string): LineageStep[] => [
+  { id: 'lin-1', type: 'Source', name: 'Snowflake Raw Ingest', status: 'Active', details: 'Direct secure link to prod schema.' },
+  { id: 'lin-2', type: 'Transform', name: 'Alteryx Feature Engineering', status: 'Active', details: 'Workflow 0x882 cleaning job.' },
+  { id: 'lin-3', type: 'Storage', name: 'S3 Intermediate Parquet', status: 'Active', details: 'Compressed staging area for AutoML.' },
+  { id: 'lin-4', type: 'Model', name: modelName, status: 'Active', details: 'Final production weights & endpoint.' }
+];
 
 export const INITIAL_MODELS: MLModel[] = Array.from({ length: 145 }).map((_, i) => {
-  const template = i < ENTERPRISE_MODEL_TEMPLATES.length ? ENTERPRISE_MODEL_TEMPLATES[i] : null;
-  const domain = template ? (template.domain as any) : domains[Math.floor(Math.random() * domains.length)];
-  const stage = stages[Math.floor(Math.random() * stages.length)];
-  const type = template ? (template.type as any) : types[Math.floor(Math.random() * types.length)];
-  const team = template ? template.team : `${domain} AI Core`;
-  const name = template ? template.name : `${domain} ${type} v${(Math.random() * 5).toFixed(1)} Core`;
-  const accuracy = 0.75 + Math.random() * 0.23;
-  const usage = Math.floor(Math.random() * 8000 + 500);
-  const data_drift = Math.random() * 0.12;
-  const error_rate = Math.random() * 0.04;
-
+  const domain = ['Retail', 'Finance', 'Healthcare', 'Tech'][i % 4];
+  const type = ['Classification', 'Regression', 'NLP'][i % 3];
+  const name = `${domain} ${type} Engine v${(i % 5) + 1}`;
   return {
     id: `m-${i + 1}`,
     name,
-    model_version: `2.${Math.floor(Math.random() * 15)}`,
+    model_version: `2.${i % 10}`,
     domain,
     type,
-    accuracy: parseFloat(accuracy.toFixed(3)),
-    latency: Math.floor(Math.random() * 150 + 10),
-    clients: ['GlobalBank', 'HealthFirst', 'MegaRetail', 'LogiSys', 'TechFlow', 'EnterpriseCo'].slice(0, Math.floor(Math.random() * 4) + 1),
-    use_cases: `Mission critical ${type.toLowerCase()} implementation for ${domain} workflow automation.`,
-    contributor: `Lead_Scientist_${Math.floor(Math.random() * 10) + 1}`,
-    usage,
-    data_drift,
-    pred_drift: data_drift * 0.75,
-    cpu_util: Math.floor(Math.random() * 45 + 15),
-    mem_util: Math.floor(Math.random() * 60 + 20),
-    throughput: Math.floor(Math.random() * 5000 + 200),
-    error_rate,
-    model_owner_team: team,
-    last_retrained_date: new Date(Date.now() - Math.random() * 8000000000).toISOString().split('T')[0],
-    model_stage: stage,
-    training_data_source: `DataLake.${domain}_Secure_Zone`,
-    approval_status: i < 5 ? 'Pending' : (Math.random() > 0.15 ? 'Approved' : 'Pending'),
-    monitoring_status: error_rate > 0.035 ? 'Critical' : (data_drift > 0.1 ? 'Degraded' : 'Healthy'),
-    sla_tier: (i % 3 === 0 ? 'Tier 1' : (i % 3 === 1 ? 'Tier 2' : 'Tier 3')) as any,
-    feature_store_dependency: [`${domain}_Clickstream`, `${domain}_Financials`],
-    inference_endpoint_id: `prod-endpoint-${Math.floor(Math.random() * 9000) + 1000}`,
-    revenue_impact: Math.floor(Math.random() * 2500000 + 50000),
-    user_growth: Math.floor(Math.random() * 25),
-    hyperparameters: generateParams(type),
-    lineage: generateLineage(domain, name),
-    data_catalog: {
-      dataset_name: `${domain}_Main_Training_Set_v${i}`,
-      format: 'Parquet',
-      size: `${Math.floor(Math.random() * 400 + 100)}GB`,
-      record_count: `${(Math.random() * 10 + 1).toFixed(1)}M`,
-      phi_data: i % 5 === 0
-    }
+    accuracy: 0.88 + Math.random() * 0.08,
+    latency: 15 + Math.floor(Math.random() * 60),
+    clients: ['Enterprise_Global'],
+    use_cases: 'Mission critical production workload.',
+    contributor: `Staff_Scientist_${i % 10}`,
+    usage: 5000 + (i * 100),
+    data_drift: Math.random() * 0.05,
+    error_rate: Math.random() * 0.02,
+    model_owner_team: 'Core Intelligence',
+    last_retrained_date: '2024-05-18',
+    model_stage: 'Production',
+    training_data_source: 'Snowflake.PROD_GOLD',
+    approval_status: 'Approved',
+    monitoring_status: 'Healthy',
+    sla_tier: 'Tier 1',
+    revenue_impact: 800000 + (i * 15000) + (Math.random() * 50000), // More spread for scatter chart
+    user_growth: 5 + Math.floor(Math.random() * 30), // Varied growth for scatter chart
+    hyperparameters: { batch_size: 64, lr: 0.0001 },
+    lineage: generateLineage(name),
+    data_catalog: MOCK_DATASETS[i % MOCK_DATASETS.length],
+    cpu_util: 32 + (i % 20),
+    mem_util: 45,
+    throughput: 850 + i
   };
 });
 
-export const INITIAL_AGENTS: AIAgent[] = Array.from({ length: 112 }).map((_, i) => {
-  const template = i < 5 ? [
-    { name: "FinBot: Autonomous Auditor", type: "Autonomous", domain: "Finance", desc: "Monitors ledger inconsistencies." },
-    { name: "ShipGenie: Logistics Orchestrator", type: "Orchestrator", domain: "Supply Chain", desc: "Coordinates multiple routing models." },
-    { name: "LegalLens: RAG Compliance Guard", type: "RAG", domain: "Legal", desc: "Semantic search across 10M+ documents." },
-    { name: "LeadScorer: Sales Assistant", type: "Task-Specific", domain: "Sales", desc: "Daily task to rank and prioritize inbound sales leads." },
-    { name: "HRConcierge: Employee Support", type: "RAG", domain: "HR", desc: "Intelligent agent for employee benefits." }
-  ][i] : null;
-
-  return {
-    id: `a-${i + 1}`,
-    name: template ? template.name : `${domains[Math.floor(Math.random() * domains.length)]} Agent ${i + 1}`,
-    type: template ? (template.type as any) : ['Autonomous', 'Task-Specific', 'RAG', 'Orchestrator'][Math.floor(Math.random() * 4)],
-    domain: template ? template.domain : domains[Math.floor(Math.random() * domains.length)],
-    status: Math.random() > 0.1 ? (Math.random() > 0.3 ? 'Active' : 'Idle') : 'Error',
-    success_rate: 0.85 + Math.random() * 0.14,
-    avg_response_time: 0.5 + Math.random() * 3.5,
-    cost_per_exec: Math.random() * 0.05 + 0.001,
-    usage_count: Math.floor(Math.random() * 50000 + 1000),
-    description: template ? template.desc : `Specialized ${template?.type || 'AI'} agent.`,
-    owner_team: `${template?.domain || 'Global'} Intelligent Systems`,
-    capabilities: ['API Integration', 'Semantic Reasoning']
-  };
-});
+export const INITIAL_AGENTS: AIAgent[] = Array.from({ length: 112 }).map((_, i) => ({
+  id: `a-${i + 1}`,
+  name: `Aura-Agent-${i + 1}`,
+  type: i % 2 === 0 ? 'Autonomous' : 'Orchestrator',
+  domain: 'Global',
+  status: 'Active',
+  success_rate: 0.99,
+  avg_response_time: 0.8,
+  cost_per_exec: 0.001,
+  usage_count: 10000,
+  description: 'Enterprise reasoning agent for multi-cloud orchestration.',
+  owner_team: 'Aura Labs',
+  capabilities: ['Tool-Use', 'Planning', 'Governance Audit']
+}));
