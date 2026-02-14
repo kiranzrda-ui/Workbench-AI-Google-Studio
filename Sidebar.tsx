@@ -71,6 +71,12 @@ const Sidebar: React.FC<SidebarProps> = ({ persona, setPersona, activeView, setA
               active={activeView === 'Governance'} 
               onClick={() => setActiveView('Governance')}
             />
+            <NavItem 
+              icon="💿" 
+              label="Data Management" 
+              active={activeView === 'Data'} 
+              onClick={() => setActiveView('Data')}
+            />
           </nav>
         </div>
       </div>

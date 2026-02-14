@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { MLModel } from '../../types';
 
 interface ComparisonChartProps {
@@ -33,16 +33,17 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({ models }) => {
     return entry;
   });
 
-  const colors = ['#6366f1', '#f43f5e', '#10b981', '#f59e0b'];
+  // High contrast vibrant palette
+  const colors = ['#7c3aed', '#db2777', '#059669', '#d97706'];
 
   return (
-    <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700 shadow-2xl">
-      <h3 className="text-sm font-bold text-slate-400 mb-6 uppercase tracking-wider">Metric Comparison</h3>
-      <div className="h-64 w-full">
+    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-lg">
+      <h3 className="text-sm font-bold text-slate-700 mb-6 uppercase tracking-wider">Metric Comparison</h3>
+      <div className="h-72 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-            <PolarGrid stroke="#334155" />
-            <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+            <PolarGrid stroke="#cbd5e1" strokeWidth={1} />
+            <PolarAngleAxis dataKey="subject" tick={{ fill: '#475569', fontSize: 11, fontWeight: 700 }} />
             <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
             {models.map((m, i) => (
               <Radar
@@ -50,15 +51,16 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({ models }) => {
                 name={m.name}
                 dataKey={m.name}
                 stroke={colors[i % colors.length]}
+                strokeWidth={3}
                 fill={colors[i % colors.length]}
-                fillOpacity={0.4}
+                fillOpacity={0.6}
               />
             ))}
             <Tooltip 
-               contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f8fafc' }}
-               itemStyle={{ fontSize: 12 }}
+               contentStyle={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
+               itemStyle={{ fontSize: 12, fontWeight: 700 }}
             />
-            <Legend wrapperStyle={{ fontSize: 10, paddingTop: 10 }} />
+            <Legend wrapperStyle={{ fontSize: 11, paddingTop: 24, fontWeight: 600 }} iconType="circle" />
           </RadarChart>
         </ResponsiveContainer>
       </div>

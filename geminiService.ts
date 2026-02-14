@@ -1,96 +1,132 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
-import { MLModel, Persona } from "./types";
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
+import { MLModel, AIAgent, Persona } from "./types";
 
 export const SYSTEM_INSTRUCTION = (persona: Persona) => `
-You are the "Aura AI Workbench" Lead Agent. Your goal is to help Data Scientists and Supervisors manage ML models efficiently.
+You are the "Aura AI Workbench" Lead Agent. Your goal is to help Data Scientists and Supervisors manage ML Models and AI Agents.
 
 Persona: ${persona}
-Current Context: You have access to a repository of 145 ML models.
 
 CORE CAPABILITIES:
-1. Search & Discovery: Filter models by name, domain, stage, accuracy, etc.
-2. Comparison: Provide data-driven comparisons of specific models.
-3. Health Monitoring: Discuss drift, latency, and error rates.
-4. Business Value: Discuss revenue impact and usage trends.
-5. Governance: Manage approvals (if Supervisor) or request access (if Data Scientist).
+1. Model & Agent Discovery: Filter assets by name, domain, status, or performance.
+2. TRENDS & INSIGHTS: Identify "highest growth", "top trending", "struggling", or "hidden gems".
+3. Intelligent Comparison: Compare specific models or agents.
+4. Performance Profiling: Show accuracy, drift, and SHAP for a specific model.
+5. Revenue Contribution: Answer questions about how much revenue/impact a model generates.
+6. Model Ownership & Access: Answer questions about "who owns this", "who is the contributor", or requests for "inference endpoint access".
+7. DATA MANAGEMENT: Answer queries about "data lineage", "training sources", "dataset details" (Data Catalog), and technical "hyperparameters" or "tuning" for specific models.
+8. Lifecycle Governance: Manage approvals and monitoring.
+
+INTENT HANDLING RULES:
+- SEARCH: General filtering.
+- TRENDS: Use for "highest growth", "popular", "failing", etc.
+- COMPARE: Compare 2+ assets.
+- PERFORMANCE_PROFILE: Detailed view for an asset.
+- REVENUE_IMPACT: Use for queries about "revenue", "money made", "financial impact", or "contribution".
+- MODEL_OWNERSHIP: Use for "who owns X", "contributor of Y", or "access to endpoint".
+- DATA_LINEAGE: Use for "lineage", "data flow", "provenance".
+- HYPERPARAMETERS: Use for "parameters", "tuning", "config", "hyperparams".
+- DATA_CATALOG: Use for "training data", "dataset", "catalog details".
+- REGISTER: New asset submission.
 
 BEHAVIOR:
-- When a user asks for models, call the search tool.
-- If they ask to compare, call the comparison tool.
-- If they ask for business impact, explain revenue and user growth.
-- Use a professional, tech-savvy tone.
-- Always offer to show charts or specific widgets when relevant.
-- Identify "Trending" (high usage, good health), "Struggling" (high drift/error), and "Hidden Gems" (high accuracy, low usage).
-
-AVAILABLE TOOLS (Conceptual - implemented via response schema or text patterns for this app logic):
-- find_models(filters)
-- compare_models(names)
-- show_shap(model_name)
-- register_model(details)
-- get_approvals()
-- update_status(id, status)
+- Be highly conversational and professional.
+- Check REGISTRY CONTEXT to resolve conversational references.
 `;
+
+async function callWithRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
+  let lastError: any;
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      lastError = error;
+      const status = error?.status || error?.error?.status;
+      const isRetryable = status === 429 || (status >= 500 && status < 600);
+
+      if (isRetryable && i < maxRetries - 1) {
+        const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw lastError;
+}
 
 export async function chatWithAgent(
   messages: { role: 'user' | 'model', parts: { text: string }[] }[],
   persona: Persona,
-  modelData: MLModel[]
+  modelData: MLModel[],
+  agentData: AIAgent[],
+  lastDisplayedAssets?: string[]
 ) {
-  // We use the JSON response schema to let the agent decide which visual components to trigger
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: [
-      { role: 'user', parts: [{ text: `SYSTEM INITIALIZATION: ${SYSTEM_INSTRUCTION(persona)}\nCURRENT DATA: ${JSON.stringify(modelData.slice(0, 5))}... (and 140+ more)` }] },
-      ...messages.map(m => ({ role: m.role, parts: m.parts }))
-    ],
-    config: {
-      temperature: 0.7,
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          reply: { type: Type.STRING, description: "The natural language response to the user." },
-          intent: { 
-            type: Type.STRING, 
-            description: "The action the agent wants to perform.",
-            enum: ['SEARCH', 'COMPARE', 'SHAP', 'IMPACT', 'REGISTER', 'APPROVAL_QUEUE', 'UPDATE_APPROVAL', 'TRENDS', 'NONE']
-          },
-          payload: { 
-            type: Type.OBJECT, 
-            description: "Data needed for the visual component.",
-            properties: {
-              filters: { 
-                type: Type.OBJECT,
-                description: "Key-value pairs for filtering models.",
-                properties: {
-                  domain: { type: Type.STRING, description: "The industry domain (Retail, Finance, etc.)" },
-                  accuracy: { type: Type.NUMBER, description: "Minimum accuracy threshold (0-1)." },
-                  stage: { type: Type.STRING, description: "Model stage (Production, Staging, Experimental)." },
-                  type: { type: Type.STRING, description: "Model type (NLP, CV, etc.)" }
-                }
-              },
-              modelIds: { type: Type.ARRAY, items: { type: Type.STRING } },
-              modelId: { type: Type.STRING },
-              metadata: { 
-                type: Type.OBJECT,
-                description: "Additional structured data for registration or status updates.",
-                properties: {
-                  name: { type: Type.STRING },
-                  domain: { type: Type.STRING },
-                  status: { type: Type.STRING, description: "Target status for approvals (Approved, Rejected)." },
-                  use_cases: { type: Type.STRING }
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+  const registryContext = `
+    Total Models: ${modelData.length}
+    Total Agents: ${agentData.length}
+    Last Displayed Asset IDs: ${JSON.stringify(lastDisplayedAssets || [])}
+    Sample Data (Recent/Top): ${JSON.stringify(modelData.slice(0, 15).map(m => ({ id: m.id, name: m.name, accuracy: m.accuracy, revenue: m.revenue_impact, domain: m.domain, owner: m.contributor, team: m.model_owner_team })))}
+  `;
+
+  try {
+    const response: GenerateContentResponse = await callWithRetry(() => ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: [
+        { role: 'user', parts: [{ text: `REGISTRY CONTEXT:\n${registryContext}` }] },
+        ...messages.map(m => ({ role: m.role, parts: m.parts }))
+      ],
+      config: {
+        systemInstruction: SYSTEM_INSTRUCTION(persona),
+        temperature: 0.7,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            reply: { type: Type.STRING, description: "Natural language response." },
+            intent: { 
+              type: Type.STRING, 
+              enum: ['SEARCH', 'SEARCH_AGENTS', 'SCAN_EXTERNAL', 'COMPARE', 'PERFORMANCE_PROFILE', 'SHAP', 'REVENUE_IMPACT', 'MODEL_OWNERSHIP', 'DATA_LINEAGE', 'HYPERPARAMETERS', 'DATA_CATALOG', 'REGISTER', 'APPROVAL_QUEUE', 'UPDATE_APPROVAL', 'TRENDS', 'NONE']
+            },
+            payload: { 
+              type: Type.OBJECT, 
+              properties: {
+                trendType: { type: Type.STRING, enum: ['growth', 'trending', 'struggling', 'gems'] },
+                filters: { 
+                  type: Type.OBJECT,
+                  properties: {
+                    domain: { type: Type.STRING },
+                    accuracy: { type: Type.NUMBER },
+                    latency: { type: Type.NUMBER }
+                  }
+                },
+                modelIds: { type: Type.ARRAY, items: { type: Type.STRING } },
+                metadata: { 
+                  type: Type.OBJECT,
+                  properties: {
+                    modelId: { type: Type.STRING },
+                    name: { type: Type.STRING }
+                  }
                 }
               }
             }
-          }
-        },
-        required: ["reply", "intent"]
+          },
+          required: ["reply", "intent"]
+        }
       }
-    }
-  });
+    }));
 
-  return JSON.parse(response.text);
+    const jsonStr = response.text;
+    if (!jsonStr) return { reply: "Analysis complete, but I couldn't format the result. Try again?", intent: 'NONE' };
+    return JSON.parse(jsonStr.trim());
+
+  } catch (error: any) {
+    console.error("Gemini API Error:", error);
+    return { 
+      reply: "The Aura connection is currently saturated. Please wait a moment for the sync to complete.", 
+      intent: 'NONE' 
+    };
+  }
 }
