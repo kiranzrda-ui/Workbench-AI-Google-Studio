@@ -4,18 +4,18 @@ import { MLModel } from '../../types';
 
 interface ModelFormProps {
   onRegister?: (data: Partial<MLModel>) => void;
+  initialData?: { name?: string; domain?: string };
 }
 
-const ModelForm: React.FC<ModelFormProps> = ({ onRegister }) => {
+const ModelForm: React.FC<ModelFormProps> = ({ onRegister, initialData }) => {
   const [submitted, setSubmitted] = useState(false);
-  // Fix: Explicitly type the domain property to match MLModel's domain union type to avoid 'string' vs union mismatch
   const [formData, setFormData] = useState<{
     name: string;
     domain: MLModel['domain'];
     description: string;
   }>({
-    name: '',
-    domain: 'Retail',
+    name: initialData?.name || '',
+    domain: (initialData?.domain as MLModel['domain']) || 'Retail',
     description: ''
   });
 
@@ -49,61 +49,55 @@ const ModelForm: React.FC<ModelFormProps> = ({ onRegister }) => {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-6 border border-purple-200 shadow-md">
-      <h3 className="text-sm font-bold text-purple-600 mb-4 uppercase tracking-wider flex items-center gap-2">
+    <div className="bg-white rounded-2xl p-6 border border-purple-200 shadow-xl max-w-lg">
+      <h3 className="text-sm font-black text-purple-600 mb-4 uppercase tracking-[0.2em] flex items-center gap-2">
         <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></span>
-        Register New Model
+        Asset Registration Form
       </h3>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-slate-400 uppercase">Model Name</label>
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Model Name</label>
             <input 
               type="text" 
               required
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-purple-500 outline-none text-slate-800 transition-all" 
+              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold focus:ring-2 focus:ring-purple-500/20 outline-none text-slate-800 transition-all" 
               placeholder="e.g., Footfall Predictor" 
             />
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-slate-400 uppercase">Domain</label>
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Domain</label>
             <select 
               required
               value={formData.domain}
               onChange={(e) => setFormData({...formData, domain: e.target.value as MLModel['domain']})}
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-purple-500 outline-none text-slate-800"
+              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold focus:ring-2 focus:ring-purple-500/20 outline-none text-slate-800"
             >
               <option value="Retail">Retail</option>
               <option value="Finance">Finance</option>
               <option value="Healthcare">Healthcare</option>
-              <option value="Manufacturing">Manufacturing</option>
-              <option value="Tech">Tech</option>
-              <option value="HR">HR</option>
               <option value="Supply Chain">Supply Chain</option>
-              <option value="Legal">Legal</option>
-              <option value="Marketing">Marketing</option>
-              <option value="Sales">Sales</option>
+              <option value="Tech">Tech</option>
             </select>
           </div>
         </div>
         <div className="space-y-1">
-            <label className="text-[10px] font-bold text-slate-400 uppercase">Use Case Description</label>
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Use Case Description</label>
             <textarea 
               value={formData.description}
               onChange={(e) => setFormData({...formData, description: e.target.value})}
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-purple-500 outline-none h-20 text-slate-800 transition-all" 
-              placeholder="Describe what this model does..."
+              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-medium h-20 text-slate-800 transition-all resize-none" 
+              placeholder="Briefly state the deployment objective..."
             ></textarea>
         </div>
         <button 
           type="submit"
-          className="w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-purple-500/20 active:scale-[0.98]"
+          className="w-full bg-purple-500 hover:bg-purple-600 text-white font-black py-3 rounded-xl transition-all shadow-lg shadow-purple-500/20 active:scale-[0.98] uppercase text-[10px] tracking-[0.2em]"
         >
-          Submit for Validation
+          Initialize Metadata Handshake
         </button>
-        <p className="text-[10px] text-center text-slate-400 font-medium">Models must meet 75% accuracy baseline to be registered.</p>
       </form>
     </div>
   );

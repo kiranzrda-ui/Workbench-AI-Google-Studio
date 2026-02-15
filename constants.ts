@@ -33,50 +33,120 @@ const generateLineage = (modelName: string): LineageStep[] => [
   { id: 'lin-4', type: 'Model', name: modelName, status: 'Active', details: 'Final production weights & endpoint.' }
 ];
 
-export const INITIAL_MODELS: MLModel[] = Array.from({ length: 145 }).map((_, i) => {
-  const domain = ['Retail', 'Finance', 'Healthcare', 'Tech'][i % 4];
-  const type = ['Classification', 'Regression', 'NLP'][i % 3];
-  const name = `${domain} ${type} Engine v${(i % 5) + 1}`;
-  return {
-    id: `m-${i + 1}`,
-    name,
-    model_version: `2.${i % 10}`,
-    domain,
-    type,
-    accuracy: 0.88 + Math.random() * 0.08,
-    latency: 15 + Math.floor(Math.random() * 60),
-    clients: ['Enterprise_Global'],
-    use_cases: 'Mission critical production workload.',
-    contributor: `Staff_Scientist_${i % 10}`,
-    usage: 5000 + (i * 100),
-    data_drift: Math.random() * 0.05,
-    error_rate: Math.random() * 0.02,
-    model_owner_team: 'Core Intelligence',
-    last_retrained_date: '2024-05-18',
+const knownModels: MLModel[] = [
+  {
+    id: 'm-optiroute',
+    name: 'OptiRoute Logistic Engine',
+    model_version: '3.1',
+    domain: 'Supply Chain',
+    type: 'Classification',
+    accuracy: 0.945,
+    latency: 22,
+    clients: ['LogiCorp Global'],
+    use_cases: 'Real-time route optimization for fleet management.',
+    contributor: 'Dr. Sarah Chen',
+    usage: 12500,
+    data_drift: 0.02,
+    error_rate: 0.005,
+    model_owner_team: 'Logistics Core',
+    last_retrained_date: '2024-05-10',
     model_stage: 'Production',
     training_data_source: 'Snowflake.PROD_GOLD',
     approval_status: 'Approved',
     monitoring_status: 'Healthy',
     sla_tier: 'Tier 1',
-    revenue_impact: 800000 + (i * 15000) + (Math.random() * 50000), // More spread for scatter chart
-    user_growth: 5 + Math.floor(Math.random() * 30), // Varied growth for scatter chart
-    hyperparameters: { batch_size: 64, lr: 0.0001 },
-    lineage: generateLineage(name),
-    data_catalog: MOCK_DATASETS[i % MOCK_DATASETS.length],
-    cpu_util: 32 + (i % 20),
-    mem_util: 45,
-    throughput: 850 + i
-  };
-});
+    revenue_impact: 2400000,
+    user_growth: 28,
+    hyperparameters: { batch_size: 128, lr: 0.00005, optimizer: 'adamw' },
+    lineage: generateLineage('OptiRoute Logistic Engine'),
+    data_catalog: MOCK_DATASETS[0],
+    cpu_util: 18,
+    mem_util: 35,
+    throughput: 1250,
+    inference_endpoint_id: 'ep-opti-09'
+  },
+  {
+    id: 'm-fraudguard',
+    name: 'FraudGuard v4',
+    model_version: '4.0.1',
+    domain: 'Finance',
+    type: 'Classification',
+    accuracy: 0.982,
+    latency: 12,
+    clients: ['SafeBank NA'],
+    use_cases: 'Transaction fraud detection at the edge.',
+    contributor: 'Marcus Aurelius',
+    usage: 500000,
+    data_drift: 0.01,
+    error_rate: 0.001,
+    model_owner_team: 'FinSec Intelligence',
+    last_retrained_date: '2024-05-15',
+    model_stage: 'Production',
+    training_data_source: 'Snowflake.FIN_GOLD',
+    approval_status: 'Approved',
+    monitoring_status: 'Healthy',
+    sla_tier: 'Tier 1',
+    revenue_impact: 8500000,
+    user_growth: 15,
+    hyperparameters: { dropout: 0.2, epochs: 15 },
+    lineage: generateLineage('FraudGuard v4'),
+    data_catalog: MOCK_DATASETS[1],
+    cpu_util: 45,
+    mem_util: 60,
+    throughput: 8000,
+    inference_endpoint_id: 'ep-fg-alpha'
+  }
+];
+
+export const INITIAL_MODELS: MLModel[] = [
+  ...knownModels,
+  // Fix: Adding explicit return type MLModel to the map callback to prevent literal type inference mismatch for union properties like model_stage.
+  ...Array.from({ length: 143 }).map((_, i): MLModel => {
+    const domains = ['Retail', 'Finance', 'Healthcare', 'Tech', 'Supply Chain'];
+    const domain = domains[i % domains.length];
+    const type = ['Classification', 'Regression', 'NLP'][i % 3];
+    const name = `${domain} ${type} Engine v${(i % 5) + 1}`;
+    return {
+      id: `m-${i + 1}`,
+      name,
+      model_version: `2.${i % 10}`,
+      domain,
+      type,
+      accuracy: 0.88 + Math.random() * 0.08,
+      latency: 15 + Math.floor(Math.random() * 60),
+      clients: ['Enterprise_Global'],
+      use_cases: 'Mission critical production workload.',
+      contributor: `Staff_Scientist_${i % 10}`,
+      usage: 5000 + (i * 100),
+      data_drift: Math.random() * 0.05,
+      error_rate: Math.random() * 0.02,
+      model_owner_team: 'Core Intelligence',
+      last_retrained_date: '2024-05-18',
+      model_stage: 'Production',
+      training_data_source: 'Snowflake.PROD_GOLD',
+      approval_status: 'Approved',
+      monitoring_status: 'Healthy',
+      sla_tier: 'Tier 1',
+      revenue_impact: 800000 + (i * 15000) + (Math.random() * 50000),
+      user_growth: 5 + Math.floor(Math.random() * 30),
+      hyperparameters: { batch_size: 64, lr: 0.0001 },
+      lineage: generateLineage(name),
+      data_catalog: MOCK_DATASETS[i % MOCK_DATASETS.length],
+      cpu_util: 32 + (i % 20),
+      mem_util: 45,
+      throughput: 850 + i
+    };
+  })
+];
 
 export const INITIAL_AGENTS: AIAgent[] = Array.from({ length: 112 }).map((_, i) => ({
   id: `a-${i + 1}`,
   name: `Aura-Agent-${i + 1}`,
   type: i % 2 === 0 ? 'Autonomous' : 'Orchestrator',
-  domain: 'Global',
+  domain: i % 3 === 0 ? 'Supply Chain' : 'Global',
   status: 'Active',
-  success_rate: 0.99,
-  avg_response_time: 0.8,
+  success_rate: 0.95 + Math.random() * 0.04,
+  avg_response_time: 0.5 + Math.random() * 0.5,
   cost_per_exec: 0.001,
   usage_count: 10000,
   description: 'Enterprise reasoning agent for multi-cloud orchestration.',

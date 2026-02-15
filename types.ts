@@ -13,6 +13,51 @@ export interface LineageStep {
   details: string;
 }
 
+export type TrainingAction = 'Reinforcement Learning' | 'Fine-Tuning' | 'Weight Distillation' | 'Hyper-Parameter Optimization' | 'First-Light Training';
+
+// Fix: Adding missing exported types AIAgent, AutoMLPlatform, AutoMLExperiment, and AuditLog
+export interface AIAgent {
+  id: string;
+  name: string;
+  type: string;
+  domain: string;
+  status: 'Active' | 'Idle' | 'Error';
+  success_rate: number;
+  avg_response_time: number;
+  cost_per_exec: number;
+  usage_count: number;
+  description: string;
+  owner_team: string;
+  capabilities: string[];
+}
+
+export interface AutoMLPlatform {
+  id: string;
+  name: string;
+  provider: string;
+  status: string;
+  capabilities: string[];
+  region: string;
+}
+
+export interface AutoMLExperiment {
+  id: string;
+  name: string;
+  platformId: string;
+  datasetId: string;
+  status: string;
+  accuracy?: number;
+}
+
+export interface AuditLog {
+  id: string;
+  timestamp: string;
+  user: string;
+  action: string;
+  platform: string;
+  status: string;
+}
+
 export interface MLModel {
   id: string;
   name: string;
@@ -64,54 +109,6 @@ export interface DataConnector {
   last_sync: string;
   latency_ms: number;
   config: Record<string, string>;
-}
-
-export interface AutoMLPlatform {
-  id: string;
-  name: string;
-  provider: 'Google' | 'Microsoft' | 'H2O' | 'Oracle';
-  status: 'Connected' | 'Disconnected' | 'Syncing';
-  capabilities: string[];
-  region: string;
-}
-
-export interface AuditLog {
-  id: string;
-  timestamp: string;
-  user: string;
-  action: string;
-  platform: string;
-  status: 'Success' | 'Failed' | 'Pending';
-}
-
-export interface AutoMLExperiment {
-  id: string;
-  name: string;
-  status: 'Preprocessing' | 'Feature Engineering' | 'Training' | 'Tuning' | 'Ensembling' | 'Complete';
-  progress: number;
-  platform: string;
-  datasetId: string;
-  task: string;
-  leaderboard: {
-    model: string;
-    score: number;
-    latency: string;
-  }[];
-}
-
-export interface AIAgent {
-  id: string;
-  name: string;
-  type: string;
-  domain: string;
-  status: 'Active' | 'Idle' | 'Error';
-  success_rate: number;
-  avg_response_time: number;
-  cost_per_exec: number;
-  usage_count: number;
-  description: string;
-  owner_team: string;
-  capabilities: string[];
 }
 
 export interface ChatMessage {
