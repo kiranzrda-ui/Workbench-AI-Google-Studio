@@ -5,6 +5,10 @@ import ModelGrid from './widgets/ModelGrid';
 import AgentGrid from './widgets/AgentGrid';
 import ModelForm from './widgets/ModelForm';
 import ComparisonChart from './widgets/ComparisonChart';
+import OwnerDetails from './widgets/OwnerDetails';
+import ApprovalQueue from './widgets/ApprovalQueue';
+import RevenueImpact from './widgets/RevenueImpact';
+import ModelDetailTile from './widgets/ModelDetailTile';
 
 interface ChatWindowProps {
   messages: ChatMessage[];
@@ -16,7 +20,7 @@ interface ChatWindowProps {
   onApprove: (requestId: string) => void;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ messages, onSend, isTyping, persona, onRegister }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ messages, onSend, isTyping, persona, onRegister, onApprove }) => {
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -53,6 +57,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, onSend, isTyping, per
                     </div>
                     {msg.metadata?.type === 'model-list' && <ModelGrid models={msg.metadata.data} />}
                     {msg.metadata?.type === 'agent-list' && <AgentGrid agents={msg.metadata.data} />}
+                    {msg.metadata?.type === 'owner-details' && <OwnerDetails model={msg.metadata.data} />}
+                    {msg.metadata?.type === 'revenue-impact' && <RevenueImpact model={msg.metadata.data} />}
+                    {msg.metadata?.type === 'approval-queue' && <ApprovalQueue requests={msg.metadata.data} onApprove={onApprove} />}
+                    {msg.metadata?.type === 'model-detail-tile' && <ModelDetailTile model={msg.metadata.data} />}
                     {msg.metadata?.type === 'model-form' && (
                       <div className="animate-in zoom-in-95">
                          <ModelForm onRegister={onRegister} initialData={msg.metadata.data} />

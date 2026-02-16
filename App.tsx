@@ -15,6 +15,11 @@ import TrainingHubView from './components/TrainingHubView';
 import SettingsView from './components/SettingsView';
 import HealthMonitorView from './components/HealthMonitorView';
 
+/** 
+ * AURA WORKBENCH - demo_version_1
+ * Agentic ML Governance & Orchestration
+ */
+
 type AppView = 'Companion' | 'Registry' | 'Agents' | 'Governance' | 'Data' | 'Training' | 'Settings' | 'Health';
 
 const App: React.FC = () => {
@@ -30,7 +35,9 @@ const App: React.FC = () => {
   const [agents] = useState<AIAgent[]>(INITIAL_AGENTS);
   const [datasets] = useState<DataSet[]>(MOCK_DATASETS);
   const [connectors] = useState<DataConnector[]>(DATA_CONNECTORS);
-  const [approvalQueue, setApprovalQueue] = useState<ApprovalRequest[]>([]);
+  const [approvalQueue, setApprovalQueue] = useState<ApprovalRequest[]>([
+    { id: 'app-01', modelId: 'm-fraudguard', modelName: 'FraudGuard v4', requester: 'Marcus Aurelius', timestamp: new Date().toISOString(), status: 'Pending' }
+  ]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
 
@@ -47,65 +54,64 @@ const App: React.FC = () => {
     setIsTyping(true);
 
     try {
-      const response = await chatWithAgent(
-        updatedMessages.slice(-12).map(m => ({ 
-          role: m.role === 'model' ? 'model' : 'user', 
+      // Clean history for Gemini: No system messages, strictly alternating user/model roles.
+      const history = updatedMessages
+        .filter(m => m.role !== 'system')
+        .map(m => ({ 
+          role: m.role === 'user' ? 'user' : 'model' as 'user' | 'model', 
           parts: [{ text: m.content }] 
-        })),
+        }));
+
+      const response = await chatWithAgent(
+        history.slice(-20),
         persona,
         models,
         agents
       );
 
       let metadata: ChatMessage['metadata'] = undefined;
-      
-      if (response.toolCalls) {
+      const lowerText = text.toLowerCase();
+      const lowerReply = response.reply.toLowerCase();
+
+      // Detection for Graphical Tiles
+      const targetModel = models.find(m => {
+        const nameLower = m.name.toLowerCase();
+        return lowerText.includes(nameLower) || lowerReply.includes(nameLower) ||
+               (lowerText.includes(m.id.toLowerCase())) ||
+               messages.some(prev => prev.content.toLowerCase().includes(nameLower));
+      });
+
+      if (lowerText.includes('detail') || lowerText.includes('metric') || lowerText.includes('stats') || lowerText.includes('performance') || lowerText.includes('shap') || lowerText.includes('radar')) {
+        if (targetModel) {
+          metadata = { type: 'model-detail-tile', data: targetModel };
+        }
+      } 
+      else if (lowerText.includes('owner') || lowerText.includes('endpoint') || lowerText.includes('access')) {
+        if (targetModel) {
+          metadata = { type: 'owner-details', data: targetModel };
+        }
+      }
+      else if (lowerText.includes('revenue') || lowerText.includes('impact') || lowerText.includes('making') || lowerText.includes('financial')) {
+        if (targetModel) {
+          metadata = { type: 'revenue-impact', data: targetModel };
+        }
+      }
+
+      if (response.toolCalls && !metadata) {
         response.toolCalls.forEach((call: any) => {
           if (call.name === 'search_registry') {
             const args = call.args as any;
             let results = [...models];
-            
-            if (args.domain) {
-              results = results.filter(m => m.domain.toLowerCase().includes(args.domain.toLowerCase()));
-            }
-            if (args.min_accuracy) {
-              results = results.filter(m => m.accuracy >= args.min_accuracy);
-            }
-            
-            // Critical: Ensure growth sorting is applied if requested or implied
-            if (args.sort_by === 'growth' || text.toLowerCase().includes('growth')) {
-              results.sort((a, b) => b.user_growth - a.user_growth);
-            } else if (args.sort_by === 'accuracy') {
-              results.sort((a, b) => b.accuracy - a.accuracy);
-            }
-
-            metadata = { type: 'model-list', data: results.slice(0, 4) };
+            if (args.domain) results = results.filter(m => m.domain.toLowerCase().includes(args.domain.toLowerCase()));
+            if (args.min_accuracy) results = results.filter(m => m.accuracy >= args.min_accuracy);
+            metadata = { type: 'model-list', data: results.slice(0, 3) };
           }
-
-          if (call.name === 'search_agents') {
-            const args = call.args as any;
-            let results = [...agents];
-            if (args.domain) {
-              results = results.filter(a => a.domain.toLowerCase().includes(args.domain.toLowerCase()));
-            }
-            metadata = { type: 'agent-list', data: results.slice(0, 4) };
-          }
-
           if (call.name === 'open_registration_form') {
             const args = call.args as any;
-            metadata = { 
-              type: 'model-form', 
-              data: { name: args.name || '', domain: args.domain || 'Tech' } 
-            };
+            metadata = { type: 'model-form', data: { name: args.name || '', domain: args.domain || 'Tech' } };
           }
-
-          if (call.name === 'compare_models') {
-            const args = call.args as any;
-            const namesToFind = args.model_names || [];
-            const results = models.filter(m => 
-              namesToFind.some((n: string) => m.name.toLowerCase().includes(n.toLowerCase()))
-            );
-            metadata = { type: 'comparison', data: results };
+          if (call.name === 'view_approval_queue') {
+            metadata = { type: 'approval-queue', data: approvalQueue.filter(a => a.status === 'Pending') };
           }
         });
       }
@@ -113,24 +119,69 @@ const App: React.FC = () => {
       const modelMsg: ChatMessage = { role: 'model', content: response.reply, timestamp: new Date(), metadata };
       setMessages(prev => [...prev, modelMsg]);
     } catch (error) {
-      console.error("Chat Error:", error);
-      setMessages(prev => [...prev, { role: 'model', content: "I'm sorry, my neural pathways are slightly congested. Shall we try that query again?", timestamp: new Date() }]);
+      console.error("Aura Logic Error:", error);
+      setMessages(prev => [...prev, { role: 'model', content: "My reasoning engine is currently out of sync with the enterprise registry. [Aura Suggestion]:: Should I re-index the asset metadata?", timestamp: new Date() }]);
     } finally {
       setIsTyping(false);
     }
   };
 
   const handleRegister = (data: Partial<MLModel>) => {
-    // Mock registration logic
+    const newId = `m-new-${Date.now()}`;
     const newModel: MLModel = {
       ...INITIAL_MODELS[0],
-      id: `m-new-${Date.now()}`,
+      id: newId,
       name: data.name || 'New Model',
       domain: data.domain || 'Tech',
       model_stage: 'Experimental',
-      approval_status: 'Pending'
+      approval_status: 'Pending',
+      user_growth: 0,
+      accuracy: 0.85 + (Math.random() * 0.1),
+      latency: 20 + (Math.random() * 50),
+      revenue_impact: 0,
+      contributor: 'Admin_Dev',
+      hyperparameters: { batch_size: 32, lr: 0.001, optimizer: 'adam' },
+      cpu_util: 10,
+      mem_util: 15,
+      throughput: 100,
+      monitoring_status: 'Healthy',
+      lineage: INITIAL_MODELS[0].lineage,
+      data_catalog: INITIAL_MODELS[0].data_catalog
     };
-    setModels([newModel, ...models]);
+    
+    setModels(prev => [newModel, ...prev]);
+
+    const newReq: ApprovalRequest = {
+      id: `app-${Date.now()}`,
+      modelId: newId,
+      modelName: newModel.name,
+      requester: 'Admin_Dev',
+      timestamp: new Date().toISOString(),
+      status: 'Pending'
+    };
+    setApprovalQueue(prev => [newReq, ...prev]);
+
+    const systemAck: ChatMessage = { 
+      role: 'model', 
+      content: `Asset '${newModel.name}' successfully integrated into the enterprise staging registry. It is indexed and searchable. [Aura Suggestion]:: Would you like me to open the Governance Hub to review the approval queue?`, 
+      timestamp: new Date() 
+    };
+    setMessages(prev => [...prev, systemAck]);
+  };
+
+  const handleApprove = (id: string) => {
+    const appRequest = approvalQueue.find(a => a.id === id);
+    if (!appRequest) return;
+
+    setModels(prev => prev.map(m => m.id === appRequest.modelId ? { ...m, approval_status: 'Approved', model_stage: 'Staging' } : m));
+    setApprovalQueue(prev => prev.filter(a => a.id !== id));
+
+    const systemAck: ChatMessage = { 
+      role: 'model', 
+      content: `Authorization protocol successful. Asset '${appRequest.modelName}' has been elevated to Staging. [Aura Suggestion]:: Shall we verify its performance against production baselines in the Training Forge?`, 
+      timestamp: new Date() 
+    };
+    setMessages(prev => [...prev, systemAck]);
   };
 
   if (!isAuthorized) return <Gatekeeper onUnlock={handleUnlock} />;
@@ -142,12 +193,7 @@ const App: React.FC = () => {
         setPersona={setPersona} 
         activeView={activeView} 
         setActiveView={setActiveView} 
-        stats={{ 
-          total: models.length, 
-          agents: agents.length, 
-          pending: approvalQueue.length, 
-          critical: models.filter(m => m.monitoring_status === 'Critical').length 
-        }} 
+        stats={{ total: models.length, agents: agents.length, pending: approvalQueue.length, critical: models.filter(m => m.monitoring_status === 'Critical').length }} 
       />
       <main className="flex-1 flex flex-col relative">
         <header className="h-16 border-b border-slate-200 flex items-center justify-between px-8 bg-white/70 backdrop-blur-md z-10 shrink-0">
@@ -165,9 +211,9 @@ const App: React.FC = () => {
 
         {activeView === 'Registry' ? <RegistryView models={models} /> : 
          activeView === 'Agents' ? <AgentHubView agents={agents} /> :
-         activeView === 'Governance' ? <GovernanceView models={models} approvalQueue={approvalQueue} auditLogs={MOCK_AUDIT_LOGS} /> :
+         activeView === 'Governance' ? <GovernanceView models={models} approvalQueue={approvalQueue} auditLogs={MOCK_AUDIT_LOGS} onApprove={handleApprove} /> :
          activeView === 'Data' ? <DataManagementView models={models} connectors={connectors} /> :
-         activeView === 'Training' ? <TrainingHubView datasets={datasets} models={models} /> :
+         activeView === 'Training' ? <TrainingHubView datasets={datasets} models={models} onApprove={handleApprove} approvalQueue={approvalQueue} /> :
          activeView === 'Settings' ? <SettingsView connectors={connectors} /> :
          activeView === 'Health' ? <HealthMonitorView connectors={connectors} models={models} /> :
          (
@@ -180,7 +226,7 @@ const App: React.FC = () => {
                 persona={persona} 
                 onImport={() => {}} 
                 onRegister={handleRegister}
-                onApprove={() => {}}
+                onApprove={handleApprove}
               />
             </div>
             <div className="hidden lg:block w-96 xl:w-[450px] bg-slate-50 overflow-y-auto p-4 space-y-4">

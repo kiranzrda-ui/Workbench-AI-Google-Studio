@@ -13,23 +13,23 @@ const PerformanceProfile: React.FC<PerformanceProfileProps> = ({ model }) => {
   return (
     <div className="space-y-4 animate-in fade-in duration-500">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <MetricCard label="Accuracy" value={`${(model.accuracy * 100).toFixed(1)}%`} color="text-indigo-600" />
-        <MetricCard label="Latency" value={`${model.latency}ms`} color="text-purple-600" />
-        <MetricCard label="Data Drift" value={`${(model.data_drift * 100).toFixed(1)}%`} color={model.data_drift > 0.08 ? "text-rose-600" : "text-emerald-600"} />
-        <MetricCard label="Throughput" value={`${model.throughput} r/m`} color="text-slate-900" />
+        <MetricCard label="Accuracy" value={`${(model.accuracy * 100).toFixed(1)}%`} color="text-indigo-400" />
+        <MetricCard label="Latency" value={`${model.latency}ms`} color="text-purple-400" />
+        <MetricCard label="Data Drift" value={`${(model.data_drift * 100).toFixed(1)}%`} color={model.data_drift > 0.08 ? "text-rose-400" : "text-emerald-400"} />
+        <MetricCard label="Throughput" value={`${model.throughput} r/m`} color="text-white" />
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xs font-bold text-slate-700 uppercase tracking-widest flex items-center gap-2">
-            <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>
-            Performance & Insights: {model.name}
+      <div className="bg-slate-900 rounded-[32px] border border-slate-800 shadow-2xl overflow-hidden p-8">
+        <div className="flex items-center justify-between mb-8">
+          <h3 className="text-xs font-black text-indigo-400 uppercase tracking-[0.2em] flex items-center gap-2">
+            <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
+            Agentic Insights Protocol: {model.name}
           </h3>
           <div className="flex gap-2">
-            <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
-              Error Rate: {(model.error_rate * 100).toFixed(2)}%
+            <span className="text-[10px] font-bold text-slate-500 bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+              Error: {(model.error_rate * 100).toFixed(2)}%
             </span>
-            <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+            <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
               v{model.model_version}
             </span>
           </div>
@@ -37,16 +37,16 @@ const PerformanceProfile: React.FC<PerformanceProfileProps> = ({ model }) => {
         
         <ShapPlot modelId={model.id} />
         
-        <div className="mt-6 pt-6 border-t border-slate-100 grid grid-cols-2 gap-8">
-           <div className="space-y-2">
-             <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Training Source</div>
-             <div className="text-xs font-bold text-slate-700 bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 truncate">
+        <div className="mt-10 pt-10 border-t border-slate-800 grid grid-cols-2 gap-10">
+           <div className="space-y-3">
+             <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Training Provisioner</div>
+             <div className="text-xs font-bold text-white bg-slate-800 px-4 py-3 rounded-2xl border border-slate-700 truncate shadow-inner">
                {model.training_data_source}
              </div>
            </div>
-           <div className="space-y-2">
-             <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Operational Health</div>
-             <div className="text-xs font-bold text-slate-700 bg-slate-50 px-3 py-2 rounded-xl border border-slate-100">
+           <div className="space-y-3">
+             <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Resource Allocation</div>
+             <div className="text-xs font-bold text-white bg-slate-800 px-4 py-3 rounded-2xl border border-slate-700 shadow-inner">
                CPU: {model.cpu_util}% • Mem: {model.mem_util}%
              </div>
            </div>
@@ -57,9 +57,9 @@ const PerformanceProfile: React.FC<PerformanceProfileProps> = ({ model }) => {
 };
 
 const MetricCard = ({ label, value, color }: any) => (
-  <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm transition-all hover:border-slate-300">
-    <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">{label}</div>
-    <div className={`text-sm font-bold ${color}`}>{value}</div>
+  <div className="bg-slate-900 p-5 rounded-[24px] border border-slate-800 shadow-xl transition-all hover:border-slate-700">
+    <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">{label}</div>
+    <div className={`text-base font-black ${color} tracking-tight`}>{value}</div>
   </div>
 );
 

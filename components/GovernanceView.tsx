@@ -6,9 +6,10 @@ interface GovernanceViewProps {
   models: MLModel[];
   approvalQueue: ApprovalRequest[];
   auditLogs: AuditLog[];
+  onApprove?: (id: string) => void;
 }
 
-const GovernanceView: React.FC<GovernanceViewProps> = ({ models, approvalQueue, auditLogs }) => {
+const GovernanceView: React.FC<GovernanceViewProps> = ({ models, approvalQueue, auditLogs, onApprove }) => {
   const [activeTab, setActiveTab] = useState<'Monitor' | 'Audit Ledger'>('Monitor');
   
   const criticalModels = models.filter(m => m.monitoring_status === 'Critical');
@@ -42,7 +43,7 @@ const GovernanceView: React.FC<GovernanceViewProps> = ({ models, approvalQueue, 
                    Critical Integrity Alerts
                  </h3>
                  <div className="space-y-4">
-                    {criticalModels.map(m => (
+                    {criticalModels.length > 0 ? criticalModels.map(m => (
                        <div key={m.id} className="flex items-center gap-6 p-6 bg-rose-50 border border-rose-100 rounded-[32px]">
                           <div className="w-14 h-14 bg-rose-500 rounded-3xl flex items-center justify-center text-white text-2xl shadow-xl shadow-rose-200 shrink-0">⚠️</div>
                           <div className="flex-1">
@@ -51,7 +52,9 @@ const GovernanceView: React.FC<GovernanceViewProps> = ({ models, approvalQueue, 
                           </div>
                           <button className="px-6 py-3 bg-rose-900 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-lg">Fix Now</button>
                        </div>
-                    ))}
+                    )) : (
+                      <div className="p-12 text-center text-slate-400 font-bold uppercase text-xs tracking-widest">No Critical Alerts Detected</div>
+                    )}
                  </div>
               </section>
 
@@ -69,17 +72,27 @@ const GovernanceView: React.FC<GovernanceViewProps> = ({ models, approvalQueue, 
               </div>
            </div>
 
-           <div className="bg-slate-900 rounded-[40px] p-8 text-white shadow-2xl">
-              <h3 className="font-black text-indigo-400 uppercase tracking-[0.2em] text-[10px] mb-8">Pending Approvals</h3>
+           <div className="bg-slate-900 rounded-[40px] p-8 text-white shadow-2xl overflow-y-auto">
+              <h3 className="font-black text-indigo-400 uppercase tracking-[0.2em] text-[10px] mb-8">Pending Approvals ({approvalQueue.length})</h3>
               <div className="space-y-4">
-                 <div className="bg-slate-800 p-6 rounded-[32px] border border-slate-700">
-                    <div className="text-sm font-bold">Churn_Predictor_v3.4</div>
-                    <div className="text-[10px] text-slate-500 mt-2">Source: AutoML Lab • Accuracy: 94.2%</div>
-                    <div className="flex gap-2 mt-6">
-                       <button className="flex-1 py-3 bg-emerald-600 rounded-2xl font-black text-[10px] uppercase">Approve</button>
-                       <button className="flex-1 py-3 bg-slate-700 rounded-2xl font-black text-[10px] uppercase">Review</button>
+                 {approvalQueue.map(req => (
+                    <div key={req.id} className="bg-slate-800 p-6 rounded-[32px] border border-slate-700">
+                      <div className="text-sm font-bold text-white">{req.modelName}</div>
+                      <div className="text-[10px] text-slate-500 mt-2">Requester: {req.requester} • Date: {new Date(req.timestamp).toLocaleDateString()}</div>
+                      <div className="flex gap-2 mt-6">
+                         <button 
+                           onClick={() => onApprove && onApprove(req.id)}
+                           className="flex-1 py-3 bg-emerald-600 rounded-2xl font-black text-[10px] uppercase hover:bg-emerald-500 transition-colors"
+                         >
+                           Approve
+                         </button>
+                         <button className="flex-1 py-3 bg-slate-700 rounded-2xl font-black text-[10px] uppercase hover:bg-slate-600 transition-colors">Review</button>
+                      </div>
                     </div>
-                 </div>
+                 ))}
+                 {approvalQueue.length === 0 && (
+                   <div className="p-8 text-center text-slate-600 border border-dashed border-slate-700 rounded-[32px] italic text-xs">Queue Clear</div>
+                 )}
               </div>
            </div>
         </div>

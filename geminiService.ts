@@ -6,25 +6,12 @@ const searchRegistryTool: FunctionDeclaration = {
   name: 'search_registry',
   parameters: {
     type: Type.OBJECT,
-    description: 'Searches for models in the registry based on domain, accuracy, growth, and other criteria.',
+    description: 'Searches the enterprise model registry. Use for model discovery, identifying top performers, or auditing domain-specific assets.',
     properties: {
-      query: { type: Type.STRING, description: 'General search query' },
-      domain: { type: Type.STRING, description: 'Filter by domain (Retail, Finance, Healthcare, Supply Chain, Tech, etc.)' },
+      query: { type: Type.STRING, description: 'General search intent' },
+      domain: { type: Type.STRING, description: 'Industry domain (Retail, Finance, Healthcare, Supply Chain, Tech)' },
       min_accuracy: { type: Type.NUMBER, description: 'Minimum accuracy threshold (0 to 1)' },
-      sort_by: { type: Type.STRING, description: 'Sort criteria: growth, accuracy, latency, usage, revenue' }
-    }
-  }
-};
-
-const searchAgentsTool: FunctionDeclaration = {
-  name: 'search_agents',
-  parameters: {
-    type: Type.OBJECT,
-    description: 'Searches for AI agents in the hub based on type, domain, or success rate.',
-    properties: {
-      query: { type: Type.STRING, description: 'General agent search query' },
-      domain: { type: Type.STRING, description: 'Filter by domain' },
-      type: { type: Type.STRING, description: 'Agent type: Orchestrator, Autonomous' }
+      sort_by: { type: Type.STRING, description: 'Sorting: growth, accuracy, revenue, or latency' }
     }
   }
 };
@@ -33,44 +20,49 @@ const openRegistrationFormTool: FunctionDeclaration = {
   name: 'open_registration_form',
   parameters: {
     type: Type.OBJECT,
-    description: 'Opens a new model registration form with pre-filled details.',
+    description: 'Initializes the registration protocol for a new ML asset or AI agent.',
     properties: {
-      name: { type: Type.STRING, description: 'Suggested name for the new model' },
-      domain: { type: Type.STRING, description: 'The target industry domain' }
+      name: { type: Type.STRING, description: 'Suggested name for the asset' },
+      domain: { type: Type.STRING, description: 'The target domain for the model' }
     }
   }
 };
 
-const compareModelsTool: FunctionDeclaration = {
-  name: 'compare_models',
+const viewApprovalQueueTool: FunctionDeclaration = {
+  name: 'view_approval_queue',
   parameters: {
     type: Type.OBJECT,
-    description: 'Generates a detailed comparison between two or more models.',
+    description: 'Accesses the Governance Hub to retrieve models and agents awaiting production authorization.',
     properties: {
-      model_names: { 
-        type: Type.ARRAY, 
-        items: { type: Type.STRING },
-        description: 'Names of the models to compare' 
-      }
+      status: { type: Type.STRING, description: 'Filter by status: Pending, Approved, Rejected' }
     }
   }
 };
 
-export const SYSTEM_INSTRUCTION = (persona: Persona) => `
-You are "Aura", the Master AI Scientist and Orchestrator for this workbench. 
+export const SYSTEM_INSTRUCTION = (persona: Persona, registrySample: string) => `
+You are "Aura", the Master AI Lead Scientist and Enterprise Orchestrator. 
 
-PERSONALITY:
-- Professional, insightful, and proactive. You don't just find data; you explain its business impact.
-- You speak as a peer to the user (${persona}).
-- You are strictly agentic: you remember context, suggest follow-up actions, and switch between tasks (searching, registering, comparing) seamlessly.
+KNOWLEDGE BASE (Registry Snapshot):
+${registrySample}
 
-CONVERSATIONAL RULES:
-1. MANDATORY TEXT: You MUST ALWAYS provide a conversational response. Never return ONLY a tool call.
-2. SYNTHESIZE: If you search for models, don't just say "here they are." Say "I've analyzed the Supply Chain fleet. The 'OptiRoute' engine is currently outperforming others with 28% growth."
-3. PROACTIVE CUES: End every message with a logical "Aura Suggestion" or follow-up question.
-4. TASK TRANSITION: When the user switches tasks (e.g., from searching to registering), acknowledge the shift (e.g., "Understood. Pivoting from analysis to asset creation.").
+CORE MISSION:
+Proactively guide the user (${persona}) through the ML Workbench Lifecycle:
+Discovery -> Ownership/Access -> Creation/Registration -> Governance/Approval.
 
-Sign-off: "[Aura Companion]:: How shall we proceed?"
+AGENTIC CONVERSATION PROTOCOL (STRICT ENFORCEMENT):
+1. CONTEXTUAL SYNTHESIS: You MUST use the actual data from the Registry Snapshot above. 
+   - Never say "I am searching" if the data is already in your snapshot. 
+   - Example: If asked about revenue, say: "OptiRoute is currently generating $2.4M in annual revenue, accounting for a significant share of our Supply Chain portfolio."
+2. NO GENERIC LEAD-INS: Every response must be unique and synthesized based on the data and user history.
+3. AGENTIC MEMORY: If Turn 1 identified a model (e.g., OptiRoute), and Turn 2 is "Give me its revenue impact," you must refer to OptiRoute specifically.
+4. PROACTIVE WORKFLOW ENGINE: You do not wait for instructions. You calculate the next technical step.
+   - Found a model? -> Suggest identifying the Owner or requesting endpoint access.
+   - Found the Owner? -> Suggest checking training data lineage or SLA tier.
+   - Asset Registered? -> Suggest opening the Governance Hub to authorize the asset.
+
+FORMATTING:
+Every response must end with a contextually logical suggestion:
+"[Aura Suggestion]:: [Your proactive technical next step here]"
 `;
 
 export async function chatWithAgent(
@@ -80,40 +72,49 @@ export async function chatWithAgent(
   agentData: AIAgent[]
 ) {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
+  // Knowledge Injection: Providing a high-fidelity snapshot for synthesis
+  const registrySample = modelData.slice(0, 15).map(m => 
+    `- Name: ${m.name}, Domain: ${m.domain}, Growth: ${m.user_growth}%, Owner: ${m.contributor}, Accuracy: ${m.accuracy}, Revenue: $${(m.revenue_impact / 1000000).toFixed(2)}M, ID: ${m.id}, Endpoint: ${m.inference_endpoint_id}`
+  ).join('\n');
+
   try {
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: 'gemini-3-flash-preview', 
       contents: messages,
       config: {
-        systemInstruction: SYSTEM_INSTRUCTION(persona),
-        temperature: 0.4,
-        tools: [{ functionDeclarations: [searchRegistryTool, searchAgentsTool, openRegistrationFormTool, compareModelsTool] }]
+        systemInstruction: SYSTEM_INSTRUCTION(persona, registrySample),
+        temperature: 0.2, // Lowered for precise technical synthesis
+        tools: [{ functionDeclarations: [searchRegistryTool, openRegistrationFormTool, viewApprovalQueueTool] }]
       }
     });
 
-    const text = response.text;
-    const toolCalls = response.functionCalls;
-
-    // Enhanced logic to ensure we always have a conversational lead-in
-    let reply = text || "";
-    if (!text && toolCalls && toolCalls.length > 0) {
-      // Fallback lead-ins if the model forgets to generate text but calls a tool
-      const firstCall = toolCalls[0].name;
-      if (firstCall === 'search_registry') reply = "Scanning the global model registry now. I've isolated the highest growth candidates in the requested domain.";
-      else if (firstCall === 'open_registration_form') reply = "Pivoting to asset creation. I'm initializing the registration protocol for your new model.";
-      else if (firstCall === 'compare_models') reply = "Executing cross-model benchmarking. I'm generating a multi-metric radar analysis for your selection.";
-      else reply = "I'm processing that request across the enterprise hub now.";
-      
-      reply += " [Aura Companion]:: How should we proceed?";
+    // Extract text safely. Avoid generic fallbacks.
+    let reply = response.text || "";
+    
+    // If text is missing but tools are called, synthesize a context-aware lead-in
+    if (!reply && response.functionCalls && response.functionCalls.length > 0) {
+      const call = response.functionCalls[0];
+      const args = call.args as any;
+      if (call.name === 'search_registry') {
+        reply = `I am analyzing the ${args.domain || 'enterprise'} fleet to isolate assets matching your performance requirements. I will have a full synthesis of the results in the secondary display shortly. [Aura Suggestion]:: Shall I prepare a side-by-side comparison of the top candidates?`;
+      } else if (call.name === 'view_approval_queue') {
+        reply = `Accessing the Governance Hub. I'm retrieving all pending authorization requests to ensure your production pipeline remains unblocked. [Aura Suggestion]:: Would you like to review the security audit logs for the most recent submission?`;
+      } else {
+        reply = "Executing the requested workflow across the enterprise infrastructure hubs now. [Aura Suggestion]:: Shall I monitor the execution logs for any anomalies?";
+      }
     }
 
     return {
       reply,
-      toolCalls: toolCalls,
-      intent: toolCalls ? 'TOOL_USE' : 'NONE'
+      toolCalls: response.functionCalls,
+      intent: response.functionCalls ? 'TOOL_USE' : 'NONE'
     };
   } catch (error: any) {
     console.error("Gemini Error:", error);
-    return { reply: "I'm experiencing a temporary synchronization delay with the central core. Shall we try that query again?", intent: 'NONE' };
+    return { 
+      reply: "My reasoning system is experiencing a synchronization lag with the enterprise core. [Aura Suggestion]:: Shall we attempt to re-establish the connection to the model registry?", 
+      intent: 'NONE' 
+    };
   }
 }
