@@ -41,8 +41,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, onSend, isTyping, per
         {messages.length === 0 && (
           <div className="h-full flex flex-col items-center justify-center text-center opacity-40">
              <span className="text-6xl mb-4">✨</span>
-             <h2 className="text-xl font-black text-slate-900 uppercase tracking-widest">Aura is Listening</h2>
-             <p className="max-w-xs text-xs font-bold mt-2">I can help you audit model safety, analyze revenue impact, or suggest the best training strategy for your next experiment.</p>
+             <h2 className="text-xl font-black text-slate-900 uppercase tracking-widest">Companion is Listening</h2>
+             <p className="max-w-xs text-xs font-bold mt-2">I can help you audit model safety, analyze revenue impact, or suggest the best optimization strategy for your next experiment.</p>
           </div>
         )}
         {messages.map((msg, i) => (
@@ -85,7 +85,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, onSend, isTyping, per
                <div className="w-1 h-1 bg-purple-400 rounded-full animate-bounce"></div>
                <div className="w-1 h-1 bg-purple-400 rounded-full animate-bounce delay-75"></div>
                <div className="w-1 h-1 bg-purple-400 rounded-full animate-bounce delay-150"></div>
-               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Aura is thinking...</span>
+               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Companion is thinking...</span>
              </div>
           </div>
         )}
@@ -97,7 +97,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, onSend, isTyping, per
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Aura, can you find me models with accuracy above 90%?"
+            placeholder="Companion, can you find me models with accuracy above 90%?"
             className="flex-1 bg-white border border-slate-200 rounded-2xl px-6 py-4 focus:outline-none focus:ring-4 focus:ring-purple-500/10 text-slate-800 text-sm font-bold transition-all shadow-inner"
           />
           <button type="submit" className="bg-purple-500 hover:bg-purple-600 text-white px-8 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-50" disabled={isTyping}>

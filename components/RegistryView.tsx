@@ -11,6 +11,7 @@ const RegistryView: React.FC<RegistryViewProps> = ({ models }) => {
   const [domainFilter, setDomainFilter] = useState('All');
   const [selectedModel, setSelectedModel] = useState<MLModel | null>(null);
   const [activeTab, setActiveTab] = useState<'Overview' | 'Lineage' | 'Params'>('Overview');
+  const [showAudit, setShowAudit] = useState<MLModel | null>(null);
 
   const filteredModels = useMemo(() => {
     return models.filter(m => {
@@ -24,10 +25,10 @@ const RegistryView: React.FC<RegistryViewProps> = ({ models }) => {
   const domains = ['All', ...new Set(models.map(m => m.domain))];
 
   return (
-    <div className="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8 space-y-6 md:space-y-10 relative">
+    <div className="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8 space-y-6 md:space-y-10 relative font-inter">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tight leading-none">Model Registry</h2>
+          <h2 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tight leading-none uppercase">Model Registry</h2>
           <p className="text-slate-500 font-bold uppercase text-[9px] md:text-[10px] tracking-[0.3em] mt-3">Enterprise Asset Catalog • {models.length} Indexed Models</p>
         </div>
         
@@ -96,9 +97,9 @@ const RegistryView: React.FC<RegistryViewProps> = ({ models }) => {
           <div className="bg-white rounded-[32px] md:rounded-[48px] shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200 border border-slate-200/50">
             <div className="p-6 md:p-10 border-b border-slate-100 bg-slate-50/80 backdrop-blur-sm flex justify-between items-center shrink-0">
               <div className="flex items-center gap-4 md:gap-6">
-                <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl md:rounded-3xl bg-slate-900 flex items-center justify-center text-2xl md:text-3xl text-white shadow-xl transform rotate-3">💎</div>
+                <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl md:rounded-3xl bg-slate-900 flex items-center justify-center text-2xl md:text-3xl text-white shadow-xl transform rotate-3 uppercase font-black">{selectedModel.name[0]}</div>
                 <div>
-                  <h3 className="text-xl md:text-3xl font-black text-slate-900 tracking-tight truncate max-w-xs md:max-w-none">{selectedModel.name}</h3>
+                  <h3 className="text-xl md:text-3xl font-black text-slate-900 tracking-tight truncate max-w-xs md:max-w-none uppercase">{selectedModel.name}</h3>
                   <p className="text-[9px] md:text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1 md:mt-2">{selectedModel.id} • {selectedModel.model_owner_team}</p>
                 </div>
               </div>
@@ -157,7 +158,12 @@ const RegistryView: React.FC<RegistryViewProps> = ({ models }) => {
                         <p className="text-[9px] md:text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-1">Annual Revenue Impact</p>
                         <h4 className="text-2xl md:text-5xl font-black text-white tracking-tight">${(selectedModel.revenue_impact / 1000).toFixed(0)}k <span className="text-emerald-400 text-sm md:text-lg ml-2">+12.4%</span></h4>
                      </div>
-                     <button className="z-10 w-full md:w-auto px-10 py-4 bg-white text-slate-900 font-black rounded-xl md:rounded-2xl text-[10px] uppercase shadow-lg active:scale-95 transition-all hover:bg-slate-50">View Full Audit Report</button>
+                     <button 
+                      onClick={() => setShowAudit(selectedModel)}
+                      className="z-10 w-full md:w-auto px-10 py-4 bg-white text-slate-900 font-black rounded-xl md:rounded-2xl text-[10px] uppercase shadow-lg active:scale-95 transition-all hover:bg-slate-50"
+                     >
+                      View Full Audit Report
+                     </button>
                   </div>
                 </div>
               )}
@@ -201,8 +207,31 @@ const RegistryView: React.FC<RegistryViewProps> = ({ models }) => {
                 </div>
               )}
             </div>
-            <div className="p-4 md:p-6 bg-slate-50/50 border-t border-slate-100 shrink-0 text-center">
-               <p className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest">Metadata Sync Timestamp: {new Date().toLocaleTimeString()} • Verified by Aura Core</p>
+          </div>
+        </div>
+      )}
+
+      {showAudit && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-6 bg-slate-900/80 backdrop-blur-lg animate-in fade-in">
+          <div className="bg-white rounded-[40px] shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 border border-white/10">
+            <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <h3 className="text-xl font-black uppercase text-slate-900">Security & Compliance Audit</h3>
+              <button onClick={() => setShowAudit(null)} className="text-slate-400 hover:text-slate-900 transition-all text-2xl">×</button>
+            </div>
+            <div className="p-8 space-y-6">
+              <div className="space-y-4">
+                <AuditField label="Integrity Signature" value="0x7f2a...b1e9" status="Verified" />
+                <AuditField label="Bias Check (Gender/Age)" value="Delta < 0.02" status="Passed" />
+                <AuditField label="Egress Filter" value="Domain-Isolated" status="Active" />
+                <AuditField label="Last Retrain Signature" value="Companion-Core-v3" status="Signed" />
+              </div>
+              <div className="p-6 bg-slate-900 rounded-3xl text-white">
+                <p className="text-[10px] font-black text-indigo-400 uppercase mb-2">Final Conclusion</p>
+                <p className="text-xs leading-relaxed italic opacity-80">"Asset v{showAudit.model_version} maintains a zero-drift profile over the last trailing 24 hours. No manual intervention required."</p>
+              </div>
+            </div>
+            <div className="p-8 bg-slate-50 border-t border-slate-100 flex justify-end">
+              <button onClick={() => setShowAudit(null)} className="px-10 py-4 bg-slate-900 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl active:scale-95">Download PDF Report</button>
             </div>
           </div>
         </div>
@@ -210,6 +239,16 @@ const RegistryView: React.FC<RegistryViewProps> = ({ models }) => {
     </div>
   );
 };
+
+const AuditField = ({ label, value, status }: { label: string; value: string; status: string }) => (
+  <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
+    <div>
+      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{label}</p>
+      <p className="text-xs font-bold text-slate-800">{value}</p>
+    </div>
+    <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-600 text-[8px] font-black uppercase">{status}</span>
+  </div>
+);
 
 const MetricBox = ({ label, value, color = "text-slate-900" }: any) => (
   <div className="bg-slate-50 border border-slate-100 p-5 md:p-6 rounded-[20px] md:rounded-[32px] hover:shadow-lg transition-all hover:-translate-y-1">

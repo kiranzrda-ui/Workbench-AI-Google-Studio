@@ -121,7 +121,7 @@ const TrainingHubView: React.FC<TrainingHubViewProps> = ({ datasets, models, onA
         </section>
 
         <section className="flex-1 flex flex-col min-h-0 bg-white rounded-xl border border-slate-200 p-3 shadow-sm overflow-hidden">
-          <h3 className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Model Registry</h3>
+          <h3 className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Model Management</h3>
           <div className="space-y-1.5 overflow-y-auto pr-1">
             {models.slice(0, 10).map(m => (
               <div 
@@ -142,8 +142,8 @@ const TrainingHubView: React.FC<TrainingHubViewProps> = ({ datasets, models, onA
       <div className="flex-1 flex flex-col gap-3 md:gap-4 min-w-0 h-full overflow-hidden">
         <header className="flex justify-between items-end shrink-0">
           <div>
-            <h2 className="text-lg md:text-xl font-black text-slate-900 tracking-tight leading-none">The Training Forge</h2>
-            <p className="text-slate-500 font-bold uppercase text-[7px] tracking-[0.2em] mt-1">Evolve Enterprise Models</p>
+            <h2 className="text-lg md:text-xl font-black text-slate-900 tracking-tight leading-none">Model Optimizer</h2>
+            <p className="text-slate-500 font-bold uppercase text-[7px] tracking-[0.2em] mt-1">Optimize Enterprise Models</p>
           </div>
           {(stagedDataset || stagedModel) && !isTraining && (
               <button onClick={resetForge} className="text-[7px] font-black text-rose-500 uppercase tracking-widest hover:underline">
@@ -208,7 +208,7 @@ const TrainingHubView: React.FC<TrainingHubViewProps> = ({ datasets, models, onA
                 <div className="w-8 h-8 border-[3px] border-purple-500/10 border-t-purple-500 rounded-full animate-spin"></div>
                 <div className="absolute inset-0 flex items-center justify-center text-lg">✨</div>
               </div>
-              <h3 className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] mb-2 text-center text-purple-400">Evolution Active</h3>
+              <h3 className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] mb-2 text-center text-purple-400">Optimization Active</h3>
               <div className="w-full max-w-[180px] space-y-2">
                 <div className="flex justify-between text-[6px] font-black uppercase tracking-widest text-purple-300">
                     <span>{trainingPhases[trainingPhase].label}</span>
@@ -228,8 +228,8 @@ const TrainingHubView: React.FC<TrainingHubViewProps> = ({ datasets, models, onA
           {isComplete && (
             <div className="absolute inset-0 bg-gradient-to-br from-purple-800 to-indigo-900 rounded-2xl flex flex-col items-center justify-center z-[70] text-white animate-in zoom-in duration-300 p-4 border border-white/20 overflow-hidden">
               <div className="w-8 h-8 bg-white/10 rounded-xl flex items-center justify-center text-lg mb-2 shadow-xl border border-white/20 shrink-0">🏆</div>
-              <h3 className="text-sm md:text-base font-black tracking-tight mb-1 uppercase text-center leading-none">Evolution Success</h3>
-              <p className="text-purple-300 font-bold uppercase text-[5px] tracking-widest mb-3 opacity-80 text-center">Artifact: aura-v2.9.2-deployable</p>
+              <h3 className="text-sm md:text-base font-black tracking-tight mb-1 uppercase text-center leading-none">Optimization Success</h3>
+              <p className="text-purple-300 font-bold uppercase text-[5px] tracking-widest mb-3 opacity-80 text-center">Artifact: optimized-v2.9.2-deployable</p>
               
               <div className="grid grid-cols-2 gap-2 w-full max-w-[220px] mb-4">
                 <div className="bg-white/5 p-1.5 rounded-lg border border-white/10 text-center">
@@ -259,7 +259,7 @@ const TrainingHubView: React.FC<TrainingHubViewProps> = ({ datasets, models, onA
            <div className="flex flex-col lg:flex-row justify-between items-center gap-3">
              <div className="flex-1 w-full">
                  <h3 className={`text-[7px] font-black uppercase tracking-widest mb-2 transition-colors ${canSelectArchitecture ? 'text-purple-400' : 'text-slate-600'}`}>
-                    Evolution Strategy
+                    Optimization Strategy
                  </h3>
                  <div className={`flex flex-wrap gap-1 transition-all duration-500 ${canSelectArchitecture ? 'opacity-100' : 'opacity-20 pointer-events-none'}`}>
                    {TRAINING_ACTIONS.map(a => (
@@ -287,7 +287,7 @@ const TrainingHubView: React.FC<TrainingHubViewProps> = ({ datasets, models, onA
                         : 'bg-slate-800 text-slate-600 border border-slate-700'
                     }`}
                  >
-                    {isTraining ? 'Training...' : 'Begin Retraining'}
+                    {isTraining ? 'Optimizing...' : 'Begin Optimization'}
                  </button>
              </div>
            </div>

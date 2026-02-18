@@ -12,8 +12,6 @@ const Gatekeeper: React.FC<GatekeeperProps> = ({ onUnlock }) => {
 
   /**
    * SECURITY CONFIGURATION
-   * Change the SECRET_PREFIX below to immediately invalidate old passwords.
-   * The daily key pattern is: [SECRET_PREFIX][DD][MM]
    */
   const SECRET_PREFIX = "tunga-"; 
 
@@ -42,7 +40,6 @@ const Gatekeeper: React.FC<GatekeeperProps> = ({ onUnlock }) => {
 
   return (
     <div className={`fixed inset-0 z-[9999] flex items-center justify-center bg-slate-50 transition-all duration-1000 ${isAnimating ? 'opacity-0 scale-110 pointer-events-none' : 'opacity-100'}`}>
-      {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-200/40 rounded-full blur-[120px] animate-pulse"></div>
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-200/40 rounded-full blur-[120px] animate-pulse delay-700"></div>
@@ -51,7 +48,7 @@ const Gatekeeper: React.FC<GatekeeperProps> = ({ onUnlock }) => {
       <div className="relative w-full max-w-md p-8 text-center">
         <div className="mb-8 flex justify-center">
           <div className="w-20 h-20 rounded-2xl bg-purple-500 flex items-center justify-center shadow-2xl shadow-purple-500/30 relative">
-            <span className="text-3xl font-bold text-white">A</span>
+            <span className="text-3xl font-bold text-white">C</span>
             <div className="absolute inset-0 rounded-2xl border border-white/40 animate-ping opacity-30"></div>
           </div>
         </div>
@@ -59,7 +56,7 @@ const Gatekeeper: React.FC<GatekeeperProps> = ({ onUnlock }) => {
         <h1 className="text-2xl font-bold text-slate-900 mb-2 tracking-tight">Access Terminal</h1>
         <p className="text-slate-500 text-sm mb-8 leading-relaxed">
           Enter the daily synchronization key to access the <br /> 
-          <span className="text-purple-600 font-semibold">Aura AI Model Workbench.</span>
+          <span className="text-purple-600 font-semibold">Companion Model Workbench.</span>
         </p>
 
         <form onSubmit={handleVerify} className="space-y-4">

@@ -24,7 +24,7 @@ const DataManagementView: React.FC<DataManagementViewProps> = ({ models, connect
     <div className="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8 space-y-6 md:space-y-8 relative">
       <header className="flex justify-between items-end shrink-0">
         <div>
-          <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Enterprise Data Catalog</h2>
+          <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Data Catalog</h2>
           <p className="text-slate-500 font-bold uppercase text-[9px] md:text-[10px] tracking-[0.2em] mt-1">Global Connectors • Snowflake & Alteryx Handshake</p>
         </div>
         <button className="px-4 md:px-6 py-2 bg-slate-900 text-white font-black rounded-lg md:rounded-xl text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl active:scale-95">Add Source</button>
@@ -111,7 +111,6 @@ const DataManagementView: React.FC<DataManagementViewProps> = ({ models, connect
         </div>
       </div>
 
-      {/* SCHEMA EXPLORER MODAL */}
       {selectedSchema && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
            <div className="bg-white rounded-[32px] md:rounded-[48px] shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
@@ -186,7 +185,7 @@ const DataManagementView: React.FC<DataManagementViewProps> = ({ models, connect
 
               <div className="p-6 md:p-10 border-t border-slate-100 bg-slate-50 shrink-0 flex flex-col md:flex-row justify-between items-center gap-6">
                  <p className="text-[9px] md:text-[10px] text-slate-500 font-bold max-w-lg leading-relaxed uppercase tracking-tighter italic text-center md:text-left">
-                   Aura automated scanners have indexed this schema for Phase 2 readiness.
+                   Companion automated scanners have indexed this schema for Phase 2 readiness.
                  </p>
                  <div className="flex gap-3 md:gap-4 w-full md:w-auto">
                     <button className="flex-1 md:flex-none px-6 md:px-8 py-3 bg-white border border-slate-200 text-slate-600 font-black rounded-xl md:rounded-2xl text-[10px] uppercase shadow-sm active:scale-95 transition-all">Export Dictionary</button>

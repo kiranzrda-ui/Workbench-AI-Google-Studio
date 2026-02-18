@@ -18,7 +18,7 @@ const GovernanceView: React.FC<GovernanceViewProps> = ({ models, approvalQueue, 
     <div className="flex-1 overflow-y-auto bg-slate-50 p-8 space-y-10">
       <header className="flex justify-between items-end">
         <div>
-          <h2 className="text-4xl font-black text-slate-900 tracking-tight leading-none">Governance Engine</h2>
+          <h2 className="text-4xl font-black text-slate-900 tracking-tight leading-none">Collaboration and Governance</h2>
           <p className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.3em] mt-3">Enterprise Compliance • Immutable Audit Trail</p>
         </div>
         <div className="flex bg-slate-100 p-1 rounded-2xl">

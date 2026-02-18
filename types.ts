@@ -15,7 +15,6 @@ export interface LineageStep {
 
 export type TrainingAction = 'Reinforcement Learning' | 'Fine-Tuning' | 'Weight Distillation' | 'Hyper-Parameter Optimization' | 'First-Light Training';
 
-// Fix: Adding missing exported types AIAgent, AutoMLPlatform, AutoMLExperiment, and AuditLog
 export interface AIAgent {
   id: string;
   name: string;
@@ -29,24 +28,6 @@ export interface AIAgent {
   description: string;
   owner_team: string;
   capabilities: string[];
-}
-
-export interface AutoMLPlatform {
-  id: string;
-  name: string;
-  provider: string;
-  status: string;
-  capabilities: string[];
-  region: string;
-}
-
-export interface AutoMLExperiment {
-  id: string;
-  name: string;
-  platformId: string;
-  datasetId: string;
-  status: string;
-  accuracy?: number;
 }
 
 export interface AuditLog {
@@ -88,7 +69,14 @@ export interface MLModel {
   mem_util: number;
   throughput: number;
   inference_endpoint_id?: string;
-  retraining_history?: string[];
+}
+
+export interface DataColumn {
+  name: string;
+  type: string;
+  pii: boolean;
+  mean: number;
+  skew: number;
 }
 
 export interface DataSet {
@@ -100,15 +88,57 @@ export interface DataSet {
   phi_data: boolean;
   domain: string;
   source_platform: 'Snowflake' | 'Alteryx' | 'S3' | 'Local';
+  columns?: DataColumn[];
+}
+
+export interface FeatureStoreGroup {
+  id: string;
+  name: string;
+  domain: string;
+  feature_count: number;
+  last_updated: string;
+  tier: 'Gold' | 'Silver' | 'Bronze';
+  owner: string;
+}
+
+export interface DataRecipe {
+  id: string;
+  name: string;
+  description: string;
+  domain: string;
+  complexity: 'Low' | 'Medium' | 'High';
+  execution_time: string;
+  is_blueprint: boolean;
+  owner: string;
+}
+
+export interface ExperimentResult {
+  id: string;
+  model_id: string;
+  timestamp: string;
+  volume: 'Small' | 'Large' | 'Enterprise';
+  accuracy: number;
+  f1_score: number;
+  inference_time: string;
+  features_used: string[];
 }
 
 export interface DataConnector {
   id: string;
-  name: 'Snowflake' | 'Alteryx' | 'S3' | 'Databricks';
+  name: string;
+  type: 'IAM' | 'REST' | 'JDBC';
   status: 'Connected' | 'Disconnected' | 'Error';
   last_sync: string;
   latency_ms: number;
+  endpoint: string;
   config: Record<string, string>;
+}
+
+export interface TransformNode {
+  id: string;
+  type: 'Source' | 'Filter' | 'Map' | 'Aggregate' | 'Cleanse' | 'Destination';
+  label: string;
+  pos: { x: number; y: number };
 }
 
 export interface ChatMessage {
@@ -136,4 +166,20 @@ export interface ExternalAsset {
   name: string;
   source: 'HuggingFace' | 'Azure AI' | 'Bedrock';
   description: string;
+}
+
+export interface AutoMLExperiment {
+  id: string;
+  name: string;
+  platform: string;
+  status: 'Running' | 'Complete' | 'Failed';
+  accuracy: number;
+  timestamp: string;
+}
+
+export interface AutoMLPlatform {
+  id: string;
+  name: string;
+  provider: 'Google' | 'Azure' | 'AWS' | 'Snowflake';
+  status: 'Available' | 'Maintenance';
 }

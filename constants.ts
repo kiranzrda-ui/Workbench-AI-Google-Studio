@@ -1,155 +1,157 @@
 
-import { MLModel, AIAgent, DataSet, AutoMLPlatform, AutoMLExperiment, DataConnector, AuditLog, LineageStep } from './types';
+import { MLModel, AIAgent, DataSet, DataConnector, AuditLog, LineageStep, TransformNode, AutoMLPlatform, FeatureStoreGroup, DataRecipe } from './types';
 
 export const DATA_CONNECTORS: DataConnector[] = [
-  { id: 'c-1', name: 'Snowflake', status: 'Connected', last_sync: '2m ago', latency_ms: 12, config: { warehouse: 'AURA_COMPUTE_XL', database: 'FIN_PROD', schema: 'GOLD_DATA' } },
-  { id: 'c-2', name: 'Alteryx', status: 'Connected', last_sync: '14m ago', latency_ms: 45, config: { endpoint: 'https://alteryx.corp.net', version: '2024.1' } },
-  { id: 'c-3', name: 'S3', status: 'Connected', last_sync: 'Real-time', latency_ms: 8, config: { bucket: 'aura-main-lake-us-east-1', encryption: 'AES-256' } }
+  { id: 'c-1', name: 'Snowflake Production', type: 'IAM', status: 'Connected', last_sync: '2m ago', latency_ms: 12, endpoint: 'sfc-prod-01.snowflakecomputing.com', config: { role: 'ML_ENGINEER', warehouse: 'AURA_COMPUTE' } },
+  { id: 'c-2', name: 'Alteryx API Gateway', type: 'REST', status: 'Connected', last_sync: '14m ago', latency_ms: 45, endpoint: 'https://api.alteryx.enterprise.net', config: { version: 'v2' } },
+  { id: 'c-3', name: 'Legacy S3 Bucket', type: 'IAM', status: 'Error', last_sync: '1h ago', latency_ms: 0, endpoint: 's3://enterprise-data-lake-archived', config: { region: 'us-east-1' } }
 ];
 
-export const AUTOML_PLATFORMS: AutoMLPlatform[] = [
-  { id: 'p-1', name: 'Google Vertex AI', provider: 'Google', status: 'Connected', capabilities: ['AutoML', 'Pipelines'], region: 'us-central1' },
-  { id: 'p-2', name: 'Azure ML Studio', provider: 'Microsoft', status: 'Connected', capabilities: ['Designer', 'SDK'], region: 'eastus2' },
-  { id: 'p-3', name: 'H2O.ai Driverless', provider: 'H2O', status: 'Syncing', capabilities: ['Time Series', 'Auto-Doc'], region: 'on-prem-cluster-01' },
-  { id: 'p-4', name: 'Oracle HeatWave', provider: 'Oracle', status: 'Connected', capabilities: ['In-DB AutoML'], region: 'us-ashburn-1' }
+export const TRANSFORM_NODES: TransformNode[] = [
+  { id: 'n1', type: 'Source', label: 'Raw Ingest', pos: { x: 50, y: 150 } },
+  { id: 'n2', type: 'Cleanse', label: 'Quality Guard', pos: { x: 250, y: 150 } },
+  { id: 'n3', type: 'Filter', label: 'Domain Filter', pos: { x: 450, y: 150 } },
+  { id: 'n4', type: 'Destination', label: 'Training Egress', pos: { x: 650, y: 150 } }
 ];
 
-export const MOCK_AUDIT_LOGS: AuditLog[] = [
-  { id: 'l-1', timestamp: '2024-05-20T10:00:00Z', user: 'Lead_Scientist_01', action: 'Inference Push', platform: 'Vertex AI', status: 'Success' },
-  { id: 'l-2', timestamp: '2024-05-20T10:05:00Z', user: 'System_Automaton', action: 'Drift Correction', platform: 'Azure ML', status: 'Success' },
-  { id: 'l-3', timestamp: '2024-05-20T10:15:00Z', user: 'Supervisor_Alpha', action: 'Model Approval', platform: 'Aura Core', status: 'Success' }
-];
+const domains = ['Retail', 'Finance', 'Healthcare', 'Tech', 'Supply Chain'];
 
-export const MOCK_DATASETS: DataSet[] = [
-  { id: 'ds-1', dataset_name: 'Snowflake_Customer_Churn_Gold', format: 'Table', size: '1.2TB', record_count: '45.2M', phi_data: false, domain: 'Retail', source_platform: 'Snowflake' },
-  { id: 'ds-2', dataset_name: 'Alteryx_Telemetry_Cleaned', format: 'CSV', size: '450GB', record_count: '1.1B', phi_data: false, domain: 'Manufacturing', source_platform: 'Alteryx' },
-  { id: 'ds-3', dataset_name: 'S3_Patient_Records_PHI', format: 'Parquet', size: '85GB', record_count: '12M', phi_data: true, domain: 'Healthcare', source_platform: 'S3' }
-];
+const domainTerms: Record<string, string[]> = {
+  Retail: ['Customer Churn', 'Inventory Rebalance', 'Sentiment Analysis', 'Price Optimization', 'Affinity Scoring', 'Returns Predictor', 'Flash Sale Forecaster'],
+  Finance: ['Credit Scoring', 'Fraud Detection', 'Market Volatility', 'Portfolio Risk', 'LTV Predictor', 'AML Screening', 'Option Pricing Engine'],
+  Healthcare: ['Readmission Risk', 'Patient Triage', 'Genomic Sequence', 'Claim Denials', 'Vital Signs Hub', 'Clinical Trial Matcher', 'Radiology AI'],
+  Tech: ['Latency Guard', 'Log Anomaly', 'Bot Traffic', 'API Health', 'Edge Compression', 'Infrastructure Drift', 'Resource Allocator'],
+  'Supply Chain': ['Route Optimizer', 'Last Mile Dispatch', 'Warehouse Binning', 'Transit Risk', 'Supplier Reliability', 'Demand Shifting', 'Vessel ETA']
+};
+
+const platforms: ('Snowflake' | 'Alteryx' | 'S3' | 'Local')[] = ['Snowflake', 'Alteryx', 'S3', 'Local'];
+
+// 110+ UNIQUE DATASETS
+export const MOCK_DATASETS: DataSet[] = Array.from({ length: 115 }).map((_, i) => {
+  const domain = domains[i % domains.length];
+  const term = domainTerms[domain][i % domainTerms[domain].length];
+  return {
+    id: `ds-${i + 1}`,
+    dataset_name: `${term.replace(/ /g, '_')}_Gold_Set_${Math.floor(i / domains.length) + 1}`,
+    format: i % 3 === 0 ? 'Table' : i % 3 === 1 ? 'Parquet' : 'Avro',
+    size: `${(Math.random() * 800 + 10).toFixed(1)}GB`,
+    record_count: `${(Math.random() * 200 + 1).toFixed(1)}M`,
+    phi_data: i % 8 === 0,
+    domain,
+    source_platform: platforms[i % platforms.length],
+    columns: [
+      { name: 'UUID_KEY', type: 'STRING', pii: false, mean: 0, skew: 0 },
+      { name: 'NORMALIZED_VAL', type: 'FLOAT64', pii: false, mean: 45, skew: 1.2 },
+      { name: 'PROTECTED_ID', type: 'STRING', pii: true, mean: 0, skew: 0 }
+    ]
+  };
+});
+
+// 105+ UNIQUE FEATURE STORE GROUPS
+export const FEATURE_STORE_DATA: FeatureStoreGroup[] = Array.from({ length: 108 }).map((_, i) => {
+  const domain = domains[i % domains.length];
+  const term = domainTerms[domain][(i + 2) % domainTerms[domain].length];
+  const tiers: ('Gold' | 'Silver' | 'Bronze')[] = ['Gold', 'Silver', 'Bronze'];
+  return {
+    id: `fs-${i + 1}`,
+    name: `${term.split(' ')[0]}_Vectors_${tiers[i % 3]}`,
+    domain,
+    feature_count: Math.floor(Math.random() * 450) + 12,
+    last_updated: `${Math.floor(Math.random() * 48)}h ago`,
+    tier: tiers[i % 3],
+    owner: `engineer_${(i % 14) + 1}`
+  };
+});
+
+// 102+ UNIQUE DATA RECIPES
+export const DATA_RECIPES: DataRecipe[] = Array.from({ length: 105 }).map((_, i) => {
+  const domain = domains[i % domains.length];
+  const term = domainTerms[domain][(i + 4) % domainTerms[domain].length];
+  const complexities: ('Low' | 'Medium' | 'High')[] = ['Low', 'Medium', 'High'];
+  return {
+    id: `recipe-${i + 1}`,
+    name: `${term} Cleanup Logic`,
+    description: `Specific ETL procedure to handle ${term.toLowerCase()} edge cases and domain-specific outliers.`,
+    domain,
+    complexity: complexities[i % 3],
+    execution_time: `${Math.floor(Math.random() * 120) + 2}m`,
+    is_blueprint: i % 5 === 0,
+    owner: `arch_${(i % 9) + 1}`
+  };
+});
 
 const generateLineage = (modelName: string): LineageStep[] => [
-  { id: 'lin-1', type: 'Source', name: 'Snowflake Raw Ingest', status: 'Active', details: 'Direct secure link to prod schema.' },
-  { id: 'lin-2', type: 'Transform', name: 'Alteryx Feature Engineering', status: 'Active', details: 'Workflow 0x882 cleaning job.' },
-  { id: 'lin-3', type: 'Storage', name: 'S3 Intermediate Parquet', status: 'Active', details: 'Compressed staging area for AutoML.' },
-  { id: 'lin-4', type: 'Model', name: modelName, status: 'Active', details: 'Final production weights & endpoint.' }
+  { id: `lin-${Math.random()}`, type: 'Source', name: 'Raw Enterprise Stream', status: 'Active', details: 'Authenticated ingestion from core backbone.' },
+  { id: `lin-${Math.random()}`, type: 'Transform', name: 'Domain Logic Mapping', status: 'Active', details: 'Applying recipe-based sanitization.' },
+  { id: `lin-${Math.random()}`, type: 'Storage', name: 'In-Memory Cache', status: 'Active', details: 'Low-latency sharded cluster.' },
+  { id: `lin-${Math.random()}`, type: 'Model', name: modelName, status: 'Active', details: 'Production-ready serialized weights.' }
 ];
 
-const knownModels: MLModel[] = [
-  {
-    id: 'm-optiroute',
-    name: 'OptiRoute Logistic Engine',
-    model_version: '3.1',
-    domain: 'Supply Chain',
-    type: 'Classification',
-    accuracy: 0.945,
-    latency: 22,
-    clients: ['LogiCorp Global'],
-    use_cases: 'Real-time route optimization for fleet management.',
-    contributor: 'Dr. Sarah Chen',
-    usage: 12500,
-    data_drift: 0.02,
-    error_rate: 0.005,
-    model_owner_team: 'Logistics Core',
-    last_retrained_date: '2024-05-10',
-    model_stage: 'Production',
-    training_data_source: 'Snowflake.PROD_GOLD',
+// 150+ UNIQUE MODELS
+export const INITIAL_MODELS: MLModel[] = Array.from({ length: 155 }).map((_, i) => {
+  const domain = domains[i % domains.length];
+  const term = domainTerms[domain][(i + 1) % domainTerms[domain].length];
+  return {
+    id: `m-aura-${i + 1}`,
+    name: `${term} Predictor`,
+    model_version: `${(i % 5) + 1}.${i % 10}.${Math.floor(Math.random() * 100)}`,
+    domain,
+    type: i % 3 === 0 ? 'Classification' : i % 3 === 1 ? 'Regression' : 'Clustering',
+    accuracy: 0.78 + Math.random() * 0.21,
+    latency: 5 + Math.floor(Math.random() * 200),
+    clients: [`Client_Group_${(i % 20) + 1}`],
+    use_cases: `Real-time handling of ${term.toLowerCase()} requests across edge regions.`,
+    contributor: `Scientist_${(i % 25) + 1}`,
+    usage: 500 + (i * 1200),
+    data_drift: Math.random() * 0.12,
+    error_rate: Math.random() * 0.05,
+    model_owner_team: `${domain} Intel Lab`,
+    last_retrained_date: '2024-05-20',
+    model_stage: i % 4 === 0 ? 'Production' : i % 4 === 1 ? 'Staging' : 'Experimental',
+    training_data_source: `Internal_Repo_${domain.substring(0,3).toUpperCase()}`,
     approval_status: 'Approved',
-    monitoring_status: 'Healthy',
-    sla_tier: 'Tier 1',
-    revenue_impact: 2400000,
-    user_growth: 28,
-    hyperparameters: { batch_size: 128, lr: 0.00005, optimizer: 'adamw' },
-    lineage: generateLineage('OptiRoute Logistic Engine'),
-    data_catalog: MOCK_DATASETS[0],
-    cpu_util: 18,
-    mem_util: 35,
-    throughput: 1250,
-    inference_endpoint_id: 'ep-opti-09'
-  },
-  {
-    id: 'm-fraudguard',
-    name: 'FraudGuard v4',
-    model_version: '4.0.1',
-    domain: 'Finance',
-    type: 'Classification',
-    accuracy: 0.982,
-    latency: 12,
-    clients: ['SafeBank NA'],
-    use_cases: 'Transaction fraud detection at the edge.',
-    contributor: 'Marcus Aurelius',
-    usage: 500000,
-    data_drift: 0.01,
-    error_rate: 0.001,
-    model_owner_team: 'FinSec Intelligence',
-    last_retrained_date: '2024-05-15',
-    model_stage: 'Production',
-    training_data_source: 'Snowflake.FIN_GOLD',
-    approval_status: 'Approved',
-    monitoring_status: 'Healthy',
-    sla_tier: 'Tier 1',
-    revenue_impact: 8500000,
-    user_growth: 15,
-    hyperparameters: { dropout: 0.2, epochs: 15 },
-    lineage: generateLineage('FraudGuard v4'),
-    data_catalog: MOCK_DATASETS[1],
-    cpu_util: 45,
-    mem_util: 60,
-    throughput: 8000,
-    inference_endpoint_id: 'ep-fg-alpha'
-  }
-];
+    monitoring_status: i % 25 === 0 ? 'Critical' : i % 18 === 0 ? 'Degraded' : 'Healthy',
+    sla_tier: i % 3 === 0 ? 'Tier 1' : 'Tier 2',
+    revenue_impact: 200000 + (Math.random() * 5000000),
+    user_growth: Math.floor(Math.random() * 60),
+    hyperparameters: { batch_size: 128, optimizer: 'adam', lr: 0.0001 },
+    lineage: generateLineage(`${term} Engine`),
+    data_catalog: MOCK_DATASETS[i % MOCK_DATASETS.length],
+    cpu_util: 10 + Math.floor(Math.random() * 80),
+    mem_util: 10 + Math.floor(Math.random() * 80),
+    throughput: 100 + (i * 50),
+    inference_endpoint_id: `ep-node-${1000 + i}`
+  };
+});
 
-export const INITIAL_MODELS: MLModel[] = [
-  ...knownModels,
-  // Fix: Adding explicit return type MLModel to the map callback to prevent literal type inference mismatch for union properties like model_stage.
-  ...Array.from({ length: 143 }).map((_, i): MLModel => {
-    const domains = ['Retail', 'Finance', 'Healthcare', 'Tech', 'Supply Chain'];
-    const domain = domains[i % domains.length];
-    const type = ['Classification', 'Regression', 'NLP'][i % 3];
-    const name = `${domain} ${type} Engine v${(i % 5) + 1}`;
-    return {
-      id: `m-${i + 1}`,
-      name,
-      model_version: `2.${i % 10}`,
-      domain,
-      type,
-      accuracy: 0.88 + Math.random() * 0.08,
-      latency: 15 + Math.floor(Math.random() * 60),
-      clients: ['Enterprise_Global'],
-      use_cases: 'Mission critical production workload.',
-      contributor: `Staff_Scientist_${i % 10}`,
-      usage: 5000 + (i * 100),
-      data_drift: Math.random() * 0.05,
-      error_rate: Math.random() * 0.02,
-      model_owner_team: 'Core Intelligence',
-      last_retrained_date: '2024-05-18',
-      model_stage: 'Production',
-      training_data_source: 'Snowflake.PROD_GOLD',
-      approval_status: 'Approved',
-      monitoring_status: 'Healthy',
-      sla_tier: 'Tier 1',
-      revenue_impact: 800000 + (i * 15000) + (Math.random() * 50000),
-      user_growth: 5 + Math.floor(Math.random() * 30),
-      hyperparameters: { batch_size: 64, lr: 0.0001 },
-      lineage: generateLineage(name),
-      data_catalog: MOCK_DATASETS[i % MOCK_DATASETS.length],
-      cpu_util: 32 + (i % 20),
-      mem_util: 45,
-      throughput: 850 + i
-    };
-  })
-];
-
-export const INITIAL_AGENTS: AIAgent[] = Array.from({ length: 112 }).map((_, i) => ({
-  id: `a-${i + 1}`,
-  name: `Aura-Agent-${i + 1}`,
-  type: i % 2 === 0 ? 'Autonomous' : 'Orchestrator',
-  domain: i % 3 === 0 ? 'Supply Chain' : 'Global',
+// 100+ UNIQUE AGENTS
+export const INITIAL_AGENTS: AIAgent[] = Array.from({ length: 102 }).map((_, i) => ({
+  id: `agent-${i + 1}`,
+  name: `${domains[i % domains.length].substring(0, 3)}-Orchestrator-${i + 1}`,
+  type: i % 2 === 0 ? 'Autonomous' : 'Supervisor',
+  domain: domains[i % domains.length],
   status: 'Active',
-  success_rate: 0.95 + Math.random() * 0.04,
-  avg_response_time: 0.5 + Math.random() * 0.5,
-  cost_per_exec: 0.001,
-  usage_count: 10000,
-  description: 'Enterprise reasoning agent for multi-cloud orchestration.',
-  owner_team: 'Aura Labs',
-  capabilities: ['Tool-Use', 'Planning', 'Governance Audit']
+  success_rate: 0.92 + Math.random() * 0.07,
+  avg_response_time: 0.1 + Math.random() * 1.4,
+  cost_per_exec: 0.001 * (i + 1),
+  usage_count: 1000 + (i * 1000),
+  description: `Specialized agent managing ${domainTerms[domains[i % domains.length]][0].toLowerCase()} pipelines.`,
+  owner_team: 'Companion Labs Core',
+  capabilities: ['Tool-Use', 'Multi-Hop Reasoning', 'Audit Handshake']
 }));
+
+export const MOCK_AUDIT_LOGS: AuditLog[] = Array.from({ length: 30 }).map((_, i) => ({
+  id: `log-${i + 1}`,
+  timestamp: new Date().toISOString(),
+  user: `operator_${(i % 10) + 1}`,
+  action: ['Deployment', 'Scale-up', 'Permission Grant', 'Retraining Job'][i % 4],
+  platform: ['Aura Core', 'Edge Node B', 'Cloud Gateway'][i % 3],
+  status: 'Success'
+}));
+
+export const AUTOML_PLATFORMS: AutoMLPlatform[] = [
+  { id: 'p-1', name: 'Vertex AI', provider: 'Google', status: 'Available' },
+  { id: 'p-2', name: 'Azure ML', provider: 'Azure', status: 'Available' },
+  { id: 'p-3', name: 'SageMaker', provider: 'AWS', status: 'Available' },
+  { id: 'p-4', name: 'Snowflake Cortex', provider: 'Snowflake', status: 'Available' }
+];

@@ -25,13 +25,13 @@ const AgentHubView: React.FC<AgentHubViewProps> = ({ agents }) => {
       <div className="flex-1 space-y-10">
         <header className="flex justify-between items-end">
           <div>
-            <h2 className="text-4xl font-black text-slate-900 tracking-tight leading-none">Agent Fleet</h2>
+            <h2 className="text-4xl font-black text-slate-900 tracking-tight leading-none">Agent Registry</h2>
             <p className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.3em] mt-3">Enterprise Orchestration Hub • {agents.length} Autonomous Units</p>
           </div>
           <div className="flex gap-4">
              <input 
                type="text" 
-               placeholder="Search agent fleet..." 
+               placeholder="Search agent registry..." 
                value={search}
                onChange={(e) => setSearch(e.target.value)}
                className="bg-white border border-slate-200 rounded-2xl px-6 py-3 text-xs font-bold focus:ring-4 focus:ring-indigo-500/10 w-80 shadow-sm transition-all outline-none"
@@ -77,7 +77,6 @@ const AgentHubView: React.FC<AgentHubViewProps> = ({ agents }) => {
         </div>
       </div>
 
-      {/* AGENT CONFIGURATION PANEL - REFINED FOR PRODUCT LOOK */}
       <div className="w-[450px] shrink-0 bg-white border-l border-slate-100 p-10 flex flex-col shadow-[-20px_0_40px_rgba(0,0,0,0.02)] z-10">
          {selectedAgent ? (
            <div className="space-y-10 h-full animate-in slide-in-from-right-8 duration-500">
@@ -108,7 +107,7 @@ const AgentHubView: React.FC<AgentHubViewProps> = ({ agents }) => {
                     <div className="relative group">
                       <textarea 
                         className="w-full bg-white border border-slate-200 rounded-[32px] p-6 text-xs font-bold text-slate-700 h-48 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all leading-relaxed shadow-sm resize-none"
-                        defaultValue={`You are an autonomous ${selectedAgent.type} within the Aura Core platform. Your objective is to manage ${selectedAgent.domain} workloads while enforcing zero-trust data protocols and enterprise governance.`}
+                        defaultValue={`You are an autonomous ${selectedAgent.type} within the Companion Core platform. Your objective is to manage ${selectedAgent.domain} workloads while enforcing zero-trust data protocols and enterprise governance.`}
                       ></textarea>
                       <div className="absolute bottom-4 right-4 text-[8px] font-black text-slate-300 uppercase tracking-widest group-hover:text-indigo-400 transition-colors">Editable Core</div>
                     </div>
@@ -141,8 +140,8 @@ const AgentHubView: React.FC<AgentHubViewProps> = ({ agents }) => {
          ) : (
            <div className="h-full flex flex-col items-center justify-center text-center px-10">
               <div className="w-24 h-24 bg-slate-50 rounded-[40px] flex items-center justify-center text-4xl mb-8 border-4 border-dashed border-slate-200 text-slate-300 animate-pulse">🔧</div>
-              <h4 className="text-xl font-black text-slate-900 mb-3 tracking-tight leading-none">Fleet Management</h4>
-              <p className="text-sm font-bold text-slate-400 leading-relaxed uppercase tracking-tighter">Select an autonomous agent from the primary hub to view real-time logs, tune its reasoning parameters, and manage cloud tool access.</p>
+              <h4 className="text-xl font-black text-slate-900 mb-3 tracking-tight leading-none">Registry Management</h4>
+              <p className="text-sm font-bold text-slate-400 leading-relaxed uppercase tracking-tighter">Select an autonomous agent from the primary registry to view real-time logs, tune its reasoning parameters, and manage cloud tool access.</p>
            </div>
          )}
       </div>
