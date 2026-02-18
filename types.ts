@@ -24,6 +24,9 @@ export interface AIAgent {
   success_rate: number;
   avg_response_time: number;
   cost_per_exec: number;
+  token_usage_avg: number;
+  human_transfer_rate: number;
+  tool_usage_accuracy: number;
   usage_count: number;
   description: string;
   owner_team: string;

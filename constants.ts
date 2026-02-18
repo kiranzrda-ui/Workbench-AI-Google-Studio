@@ -24,9 +24,36 @@ const domainTerms: Record<string, string[]> = {
   'Supply Chain': ['Route Optimizer', 'Last Mile Dispatch', 'Warehouse Binning', 'Transit Risk', 'Supplier Reliability', 'Demand Shifting', 'Vessel ETA']
 };
 
+const agentDescriptions: Record<string, string[]> = {
+  Retail: [
+    "Autonomous demand-shaping agent utilizing real-time store-front telemetry to trigger dynamic pricing shifts.",
+    "Inventory velocity monitor that proactively requests logistics re-routing when stock levels breach P90 thresholds.",
+    "Customer affinity orchestrator that synchronizes loyalty-program vectors with regional seasonal trends."
+  ],
+  Finance: [
+    "High-fidelity fraud detection agent specialized in cross-border SWIFT packet inspection and behavioral fingerprinting.",
+    "Risk-weighted portfolio rebalancer that continuously stress-tests capital allocation against volatility indices.",
+    "AML screening unit that cross-references global watchlists with internal transaction trails using semantic reconciliation."
+  ],
+  Healthcare: [
+    "Clinical diagnostic assistant designed to shard high-resolution radiology imagery into domain-specific inference nodes.",
+    "Patient triage orchestrator optimizing ward-loading cycles based on real-time genomic sequences and vital sign telemetry.",
+    "HIPAA-compliant data mediator that anonymizes patient records for research exports while maintaining relational integrity."
+  ],
+  Tech: [
+    "Site Reliability Agent managing elastic Kubernetes sharding and automated pod eviction during request spikes.",
+    "Infrastructure drift detection orchestrator that audits Terraform state-files against live multi-cloud environments.",
+    "Low-latency API watchdog utilizing predictive sharding to mitigate regional gateway timeouts before they cascade."
+  ],
+  'Supply Chain': [
+    "Logistics route optimizer calculating last-mile efficiency while factoring in fuel-index shifts and vessel ETA deviations.",
+    "Supplier reliability auditor that generates trust-scores based on historical fulfillment latency and contract adherence.",
+    "Global warehouse binning agent optimizing multi-node storage footprints using 3D spatial utilization forecasting."
+  ]
+};
+
 const platforms: ('Snowflake' | 'Alteryx' | 'S3' | 'Local')[] = ['Snowflake', 'Alteryx', 'S3', 'Local'];
 
-// 110+ UNIQUE DATASETS
 export const MOCK_DATASETS: DataSet[] = Array.from({ length: 115 }).map((_, i) => {
   const domain = domains[i % domains.length];
   const term = domainTerms[domain][i % domainTerms[domain].length];
@@ -47,7 +74,6 @@ export const MOCK_DATASETS: DataSet[] = Array.from({ length: 115 }).map((_, i) =
   };
 });
 
-// 105+ UNIQUE FEATURE STORE GROUPS
 export const FEATURE_STORE_DATA: FeatureStoreGroup[] = Array.from({ length: 108 }).map((_, i) => {
   const domain = domains[i % domains.length];
   const term = domainTerms[domain][(i + 2) % domainTerms[domain].length];
@@ -63,7 +89,6 @@ export const FEATURE_STORE_DATA: FeatureStoreGroup[] = Array.from({ length: 108 
   };
 });
 
-// 102+ UNIQUE DATA RECIPES
 export const DATA_RECIPES: DataRecipe[] = Array.from({ length: 105 }).map((_, i) => {
   const domain = domains[i % domains.length];
   const term = domainTerms[domain][(i + 4) % domainTerms[domain].length];
@@ -87,7 +112,6 @@ const generateLineage = (modelName: string): LineageStep[] => [
   { id: `lin-${Math.random()}`, type: 'Model', name: modelName, status: 'Active', details: 'Production-ready serialized weights.' }
 ];
 
-// 150+ UNIQUE MODELS
 export const INITIAL_MODELS: MLModel[] = Array.from({ length: 155 }).map((_, i) => {
   const domain = domains[i % domains.length];
   const term = domainTerms[domain][(i + 1) % domainTerms[domain].length];
@@ -124,21 +148,29 @@ export const INITIAL_MODELS: MLModel[] = Array.from({ length: 155 }).map((_, i) 
   };
 });
 
-// 100+ UNIQUE AGENTS
-export const INITIAL_AGENTS: AIAgent[] = Array.from({ length: 102 }).map((_, i) => ({
-  id: `agent-${i + 1}`,
-  name: `${domains[i % domains.length].substring(0, 3)}-Orchestrator-${i + 1}`,
-  type: i % 2 === 0 ? 'Autonomous' : 'Supervisor',
-  domain: domains[i % domains.length],
-  status: 'Active',
-  success_rate: 0.92 + Math.random() * 0.07,
-  avg_response_time: 0.1 + Math.random() * 1.4,
-  cost_per_exec: 0.001 * (i + 1),
-  usage_count: 1000 + (i * 1000),
-  description: `Specialized agent managing ${domainTerms[domains[i % domains.length]][0].toLowerCase()} pipelines.`,
-  owner_team: 'Companion Labs Core',
-  capabilities: ['Tool-Use', 'Multi-Hop Reasoning', 'Audit Handshake']
-}));
+export const INITIAL_AGENTS: AIAgent[] = Array.from({ length: 102 }).map((_, i) => {
+  const domain = domains[i % domains.length];
+  const domainDescList = agentDescriptions[domain];
+  const description = domainDescList[i % domainDescList.length];
+  
+  return {
+    id: `agent-${i + 1}`,
+    name: `${domain.substring(0, 3)}-Orchestrator-${i + 1}`,
+    type: i % 2 === 0 ? 'Autonomous' : 'Hybrid-Supervisor',
+    domain: domain,
+    status: 'Active',
+    success_rate: 0.88 + Math.random() * 0.11,
+    avg_response_time: 0.2 + Math.random() * 2.8,
+    cost_per_exec: 0.002 * (i + 1),
+    token_usage_avg: 450 + Math.floor(Math.random() * 1200),
+    human_transfer_rate: 0.02 + Math.random() * 0.08,
+    tool_usage_accuracy: 0.94 + Math.random() * 0.05,
+    usage_count: 5000 + (i * 800),
+    description,
+    owner_team: 'Companion Labs Core',
+    capabilities: ['Tool-Use', 'Multi-Hop Reasoning', 'RAG Context Injection']
+  };
+});
 
 export const MOCK_AUDIT_LOGS: AuditLog[] = Array.from({ length: 30 }).map((_, i) => ({
   id: `log-${i + 1}`,

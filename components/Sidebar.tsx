@@ -12,7 +12,9 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ persona, setPersona, activeView, setActiveView, stats }) => {
-  const [openGroup, setOpenGroup] = useState<string | null>('MLOps');
+  const [openGroup, setOpenGroup] = useState<string | null>('Mgmt');
+
+  const toggleGroup = (id: string) => setOpenGroup(openGroup === id ? null : id);
 
   return (
     <aside className="w-64 border-r border-slate-200 bg-white flex flex-col p-5 hidden md:flex shrink-0">
@@ -41,10 +43,29 @@ const Sidebar: React.FC<SidebarProps> = ({ persona, setPersona, activeView, setA
           <NavItem icon="💬" label="Companion" active={activeView === 'Companion'} onClick={() => setActiveView('Companion')} />
         </div>
 
+        {/* Model Management Group */}
+        <div>
+          <button 
+            onClick={() => toggleGroup('Mgmt')}
+            className="w-full flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 hover:text-slate-600 transition-colors"
+          >
+            <span>Model Management</span>
+            <span className="text-[8px]">{openGroup === 'Mgmt' ? '▼' : '▶'}</span>
+          </button>
+          {openGroup === 'Mgmt' && (
+            <div className="space-y-1 ml-2 border-l border-slate-100 pl-2">
+              <NavItem icon="⚡" label="Visual ML Engine" active={activeView === 'Mgmt_Engine'} onClick={() => setActiveView('Mgmt_Engine')} small />
+              <NavItem icon="📊" label="Results Visualizer" active={activeView === 'Mgmt_Visualizer'} onClick={() => setActiveView('Mgmt_Visualizer')} small />
+              <NavItem icon="🔬" label="Model Diagnostics" active={activeView === 'Mgmt_Diagnostics'} onClick={() => setActiveView('Mgmt_Diagnostics')} small />
+              <NavItem icon="👁️" label="XAI Tools" active={activeView === 'Mgmt_XAI'} onClick={() => setActiveView('Mgmt_XAI')} small />
+            </div>
+          )}
+        </div>
+
         {/* MLOps Support Group */}
         <div>
           <button 
-            onClick={() => setOpenGroup(openGroup === 'MLOps' ? null : 'MLOps')}
+            onClick={() => toggleGroup('MLOps')}
             className="w-full flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 hover:text-slate-600 transition-colors"
           >
             <span>MLOps Support</span>
@@ -52,11 +73,11 @@ const Sidebar: React.FC<SidebarProps> = ({ persona, setPersona, activeView, setA
           </button>
           {openGroup === 'MLOps' && (
             <div className="space-y-1 ml-2 border-l border-slate-100 pl-2">
-              <NavItem icon="📊" label="Model Registry" active={activeView === 'Registry'} onClick={() => setActiveView('Registry')} small />
+              <NavItem icon="📋" label="Model Registry" active={activeView === 'Registry'} onClick={() => setActiveView('Registry')} small />
               <NavItem icon="⚒️" label="Model Optimizer" active={activeView === 'Optimizer'} onClick={() => setActiveView('Optimizer')} small />
               <NavItem icon="💿" label="Data Catalog" active={activeView === 'Catalog'} onClick={() => setActiveView('Catalog')} small />
               <NavItem icon="📜" label="Data Recipes" active={activeView === 'Recipes'} onClick={() => setActiveView('Recipes')} small />
-              <NavItem icon="🔬" label="Model Test Bench" active={activeView === 'TestBench'} onClick={() => setActiveView('TestBench')} small />
+              <NavItem icon="🧪" label="Model Test Bench" active={activeView === 'TestBench'} onClick={() => setActiveView('TestBench')} small />
             </div>
           )}
         </div>
@@ -64,7 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({ persona, setPersona, activeView, setA
         {/* Data Management Group */}
         <div>
           <button 
-            onClick={() => setOpenGroup(openGroup === 'Data' ? null : 'Data')}
+            onClick={() => toggleGroup('Data')}
             className="w-full flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 hover:text-slate-600 transition-colors"
           >
             <span>Data Management</span>
@@ -83,8 +104,8 @@ const Sidebar: React.FC<SidebarProps> = ({ persona, setPersona, activeView, setA
         <div>
           <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Global Hubs</div>
           <div className="space-y-1">
-            <NavItem icon="🤖" label="Agent Registry" active={activeView === 'Agents'} onClick={() => setActiveView('Agents'} />
-            <NavItem icon="🛡️" label="Governance" active={activeView === 'Governance'} onClick={() => setActiveView('Governance')} />
+            <NavItem icon="🤖" label="Agent Registry" active={activeView === 'Agents'} onClick={() => setActiveView('Agents')} />
+            <NavItem icon="🛡️" label="Collab & Governance" active={activeView === 'Governance'} onClick={() => setActiveView('Governance')} />
           </div>
         </div>
       </nav>

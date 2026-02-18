@@ -18,10 +18,12 @@ import VisualExplorerView from './components/DataManagement/VisualExplorerView';
 import DataConnectivityView from './components/DataManagement/DataConnectivityView';
 import DataRecipesView from './components/DataRecipesView';
 import ModelTestBenchView from './components/ModelTestBenchView';
+import ModelManagementHub from './components/ModelManagement/ModelManagementHub';
 
 export type AppView = 
   | 'Companion' 
-  | 'Registry' | 'Optimizer' | 'Catalog' | 'Recipes' | 'TestBench'
+  | 'Registry' | 'Optimizer' | 'Catalog' | 'Recipes' | 'TestBench' 
+  | 'Mgmt_Engine' | 'Mgmt_Visualizer' | 'Mgmt_Diagnostics' | 'Mgmt_XAI'
   | 'VisualTransform' | 'SpecialPrep' | 'VisualExplorer' | 'Connectivity'
   | 'Agents' | 'Governance' | 'Health';
 
@@ -74,6 +76,16 @@ const App: React.FC = () => {
   if (!isAuthorized) return <Gatekeeper onUnlock={handleUnlock} />;
 
   const renderView = () => {
+    if (activeView.startsWith('Mgmt_')) {
+      const tabMap: Record<string, 'Engine' | 'Visualizer' | 'Diagnostics' | 'XAI'> = {
+        Mgmt_Engine: 'Engine',
+        Mgmt_Visualizer: 'Visualizer',
+        Mgmt_Diagnostics: 'Diagnostics',
+        Mgmt_XAI: 'XAI'
+      };
+      return <ModelManagementHub models={models} datasets={datasets} initialTab={tabMap[activeView]} />;
+    }
+
     switch (activeView) {
       case 'Registry': return <RegistryView models={models} />;
       case 'Optimizer': return <TrainingHubView datasets={datasets} models={models} />;
@@ -111,8 +123,8 @@ const App: React.FC = () => {
       <main className="flex-1 flex flex-col relative">
         <header className="h-16 border-b border-slate-200 flex items-center justify-between px-8 bg-white/70 backdrop-blur-md z-10 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center font-bold text-lg text-white">C</div>
-            <h1 className="text-xl font-black tracking-tight text-slate-900 uppercase">Companion <span className="text-purple-500 font-light italic">v3.0</span></h1>
+            <div className="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center font-bold text-lg text-white">W</div>
+            <h1 className="text-xl font-black tracking-tight text-slate-900 uppercase">AI Workbench <span className="text-purple-500 font-light italic">v3.0</span></h1>
           </div>
           <div className="flex items-center gap-4">
              <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full">

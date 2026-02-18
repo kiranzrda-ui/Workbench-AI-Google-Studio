@@ -25,13 +25,13 @@ const AgentHubView: React.FC<AgentHubViewProps> = ({ agents }) => {
       <div className="flex-1 space-y-10">
         <header className="flex justify-between items-end">
           <div>
-            <h2 className="text-4xl font-black text-slate-900 tracking-tight leading-none">Agent Registry</h2>
+            <h2 className="text-4xl font-black text-slate-900 tracking-tight leading-none uppercase">Agent Registry</h2>
             <p className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.3em] mt-3">Enterprise Orchestration Hub • {agents.length} Autonomous Units</p>
           </div>
           <div className="flex gap-4">
              <input 
                type="text" 
-               placeholder="Search agent registry..." 
+               placeholder="Filter by domain or name..." 
                value={search}
                onChange={(e) => setSearch(e.target.value)}
                className="bg-white border border-slate-200 rounded-2xl px-6 py-3 text-xs font-bold focus:ring-4 focus:ring-indigo-500/10 w-80 shadow-sm transition-all outline-none"
@@ -48,7 +48,7 @@ const AgentHubView: React.FC<AgentHubViewProps> = ({ agents }) => {
             >
                <div className="flex justify-between items-start mb-8">
                  <div className="w-16 h-16 rounded-3xl bg-slate-50 border border-slate-100 flex items-center justify-center text-3xl group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500">
-                    {agent.type === 'Orchestrator' ? '🎼' : '🧠'}
+                    {agent.type.includes('Supervisor') ? '👮' : '🤖'}
                  </div>
                  <div className="text-right">
                    <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase border ${agent.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
@@ -56,20 +56,19 @@ const AgentHubView: React.FC<AgentHubViewProps> = ({ agents }) => {
                    </span>
                  </div>
                </div>
-               <h3 className="font-black text-slate-900 text-xl tracking-tight leading-none mb-2">{agent.name}</h3>
-               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{agent.domain} • Global Instance</p>
+               <h3 className="font-black text-slate-900 text-xl tracking-tight leading-none mb-2 uppercase">{agent.name}</h3>
+               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{agent.domain} • {agent.type}</p>
                
-               <div className="mt-8 pt-8 border-t border-slate-50 flex justify-between items-end">
+               <p className="mt-4 text-[11px] text-slate-500 font-medium leading-relaxed italic line-clamp-3">"{agent.description}"</p>
+
+               <div className="mt-8 pt-8 border-t border-slate-50 grid grid-cols-2 gap-6">
                   <div>
-                     <div className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-1">Execution Reliability</div>
+                     <div className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-1">Task Success</div>
                      <div className="text-2xl font-black text-indigo-600">{(agent.success_rate * 100).toFixed(1)}%</div>
                   </div>
-                  <div className="text-right group/latency relative cursor-help">
-                     <div className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-1">Avg TTL</div>
-                     <div className="text-lg font-mono font-bold text-slate-900">{agent.avg_response_time}s</div>
-                     <div className="absolute bottom-full right-0 mb-2 w-32 bg-slate-900 text-white p-2 rounded-lg text-[8px] opacity-0 group-hover/latency:opacity-100 transition-opacity pointer-events-none z-50">
-                       P95 Response time within enterprise backbone.
-                     </div>
+                  <div className="text-right">
+                     <div className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-1">Avg Response</div>
+                     <div className="text-xl font-mono font-bold text-slate-900">{agent.avg_response_time.toFixed(2)}s</div>
                   </div>
                </div>
             </div>
@@ -77,76 +76,84 @@ const AgentHubView: React.FC<AgentHubViewProps> = ({ agents }) => {
         </div>
       </div>
 
-      <div className="w-[450px] shrink-0 bg-white border-l border-slate-100 p-10 flex flex-col shadow-[-20px_0_40px_rgba(0,0,0,0.02)] z-10">
+      <div className="w-[480px] shrink-0 bg-white border-l border-slate-100 p-10 flex flex-col shadow-[-20px_0_40px_rgba(0,0,0,0.02)] z-10">
          {selectedAgent ? (
            <div className="space-y-10 h-full animate-in slide-in-from-right-8 duration-500">
               <header className="flex justify-between items-center">
                  <div>
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-none">Agent Ops</h3>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">UUID: {selectedAgent.id.toUpperCase()}</p>
+                    <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-none uppercase">Agent Analytics</h3>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">Asset ID: {selectedAgent.id.toUpperCase()}</p>
                  </div>
-                 <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 font-black">⚙️</div>
+                 <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 font-black">📊</div>
               </header>
 
-              <div className="space-y-6">
-                 <div className="bg-slate-50 p-6 rounded-[32px] border border-slate-100">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 block">Reasoning Engine Tuning</label>
-                    <div className="space-y-4">
-                       <div className="flex justify-between text-xs font-bold text-slate-600 uppercase tracking-tighter">
-                          <span>Temperature</span>
-                          <span className="text-indigo-600">0.2</span>
+              <div className="space-y-8">
+                 <div className="bg-slate-900 rounded-[32px] p-8 text-white space-y-6 shadow-2xl">
+                    <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em]">Efficiency Protocol</h4>
+                    <div className="grid grid-cols-2 gap-6">
+                       <MetricCard label="Token Intensity" value={`~${selectedAgent.token_usage_avg}`} sub="avg tokens/msg" />
+                       <MetricCard label="Compute Cost" value={`$${selectedAgent.cost_per_exec.toFixed(3)}`} sub="per execution" />
+                    </div>
+                    <div className="pt-4 border-t border-white/10 space-y-4">
+                       <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase">
+                          <span>Tool Accuracy</span>
+                          <span className="text-emerald-400">{(selectedAgent.tool_usage_accuracy * 100).toFixed(1)}%</span>
                        </div>
-                       <div className="w-full bg-slate-200 h-1.5 rounded-full relative">
-                          <div className="absolute left-0 top-0 h-full bg-indigo-600 w-1/5 rounded-full"></div>
+                       <div className="w-full bg-white/10 h-1 rounded-full overflow-hidden">
+                          <div className="bg-emerald-500 h-full transition-all duration-1000" style={{ width: `${selectedAgent.tool_usage_accuracy * 100}%` }}></div>
+                       </div>
+                       <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase">
+                          <span>Human Transfer Trigger</span>
+                          <span className="text-amber-400">{(selectedAgent.human_transfer_rate * 100).toFixed(1)}%</span>
+                       </div>
+                       <div className="w-full bg-white/10 h-1 rounded-full overflow-hidden">
+                          <div className="bg-amber-500 h-full transition-all duration-1000" style={{ width: `${selectedAgent.human_transfer_rate * 100}%` }}></div>
                        </div>
                     </div>
                  </div>
 
                  <div className="space-y-4">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Master System Prompt</label>
-                    <div className="relative group">
-                      <textarea 
-                        className="w-full bg-white border border-slate-200 rounded-[32px] p-6 text-xs font-bold text-slate-700 h-48 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all leading-relaxed shadow-sm resize-none"
-                        defaultValue={`You are an autonomous ${selectedAgent.type} within the Companion Core platform. Your objective is to manage ${selectedAgent.domain} workloads while enforcing zero-trust data protocols and enterprise governance.`}
-                      ></textarea>
-                      <div className="absolute bottom-4 right-4 text-[8px] font-black text-slate-300 uppercase tracking-widest group-hover:text-indigo-400 transition-colors">Editable Core</div>
-                    </div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Enterprise Role Definition</label>
+                    <p className="text-sm font-medium text-slate-600 leading-relaxed border-l-4 border-indigo-500 pl-6 py-2">
+                       {selectedAgent.description}
+                    </p>
                  </div>
 
                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tool Entitlements</label>
-                    <div className="grid grid-cols-1 gap-2">
-                      {['Snowflake_Gateway', 'Alteryx_Engine_v2', 'AutoML_Provisioner'].map(tool => (
-                        <div key={tool} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-indigo-50 hover:border-indigo-100 transition-all cursor-pointer group/tool">
-                           <div className="flex items-center gap-3">
-                              <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full"></div>
-                              <span className="text-[10px] font-black text-slate-700 uppercase tracking-tight">{tool.replace(/_/g, ' ')}</span>
-                           </div>
-                           <div className="w-8 h-4 bg-indigo-600 rounded-full relative"><div className="absolute right-0.5 top-0.5 w-3 h-3 bg-white rounded-full"></div></div>
-                        </div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Core Capabilities</label>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedAgent.capabilities.map(cap => (
+                        <span key={cap} className="px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-xl text-[10px] font-black text-slate-700 uppercase">{cap}</span>
                       ))}
                     </div>
                  </div>
 
                  <div className="pt-8 space-y-3">
-                    <button className="w-full py-5 bg-slate-900 text-white font-black rounded-[28px] text-[10px] uppercase tracking-[0.2em] shadow-2xl shadow-slate-400/30 active:scale-95 transition-all flex items-center justify-center gap-3">
-                       <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                       Apply Changes & Hot-Deploy
+                    <button className="w-full py-5 bg-indigo-600 text-white font-black rounded-[28px] text-[10px] uppercase tracking-[0.2em] shadow-2xl shadow-indigo-400/30 active:scale-95 transition-all flex items-center justify-center gap-3">
+                       Invoke Reasoning Cycle
                     </button>
-                    <p className="text-center text-[9px] text-slate-400 font-bold uppercase italic">"Deployment takes ~12s to propagate to Global Edge Clusters."</p>
+                    <p className="text-center text-[9px] text-slate-400 font-bold uppercase tracking-widest">Ownership: {selectedAgent.owner_team}</p>
                  </div>
               </div>
            </div>
          ) : (
            <div className="h-full flex flex-col items-center justify-center text-center px-10">
-              <div className="w-24 h-24 bg-slate-50 rounded-[40px] flex items-center justify-center text-4xl mb-8 border-4 border-dashed border-slate-200 text-slate-300 animate-pulse">🔧</div>
-              <h4 className="text-xl font-black text-slate-900 mb-3 tracking-tight leading-none">Registry Management</h4>
-              <p className="text-sm font-bold text-slate-400 leading-relaxed uppercase tracking-tighter">Select an autonomous agent from the primary registry to view real-time logs, tune its reasoning parameters, and manage cloud tool access.</p>
+              <div className="w-24 h-24 bg-slate-50 rounded-[40px] flex items-center justify-center text-4xl mb-8 border-4 border-dashed border-slate-200 text-slate-300 animate-pulse">⚙️</div>
+              <h4 className="text-xl font-black text-slate-900 mb-3 tracking-tight leading-none uppercase">Agent Hub</h4>
+              <p className="text-sm font-bold text-slate-400 leading-relaxed uppercase tracking-tighter">Select an autonomous unit from the registry to view performance telemetry, operational costs, and capability vectors.</p>
            </div>
          )}
       </div>
     </div>
   );
 };
+
+const MetricCard = ({ label, value, sub }: any) => (
+   <div>
+      <div className="text-[8px] font-black text-indigo-400 uppercase tracking-tighter mb-1">{label}</div>
+      <div className="text-xl font-black text-white">{value}</div>
+      <div className="text-[7px] text-slate-500 font-black uppercase mt-0.5">{sub}</div>
+   </div>
+);
 
 export default AgentHubView;
