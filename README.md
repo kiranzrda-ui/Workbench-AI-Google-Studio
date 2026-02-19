@@ -2,19 +2,23 @@
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-# Run and deploy your AI Studio app
+# AI Workbench Migration Workspace
 
-This contains everything you need to run your app locally.
+This repository now includes an enterprise migration baseline from the original React prototype to:
 
-View your app in AI Studio: https://ai.studio/apps/drive/15ksFNpdGs_m1dFWwgFZwruYK_BkYVCV0
+- **Angular 18** frontend (`frontend-angular/`)
+- **ASP.NET Core 8 Web API** backend (`backend/src/Workbench.Api/`)
+- **PostgreSQL** persistence (`backend/docker-compose.yml`)
 
-## Run Locally
+## Migration guide
 
-**Prerequisites:**  Node.js
+See [ANGULAR_DOTNET_POSTGRES_MIGRATION.md](./ANGULAR_DOTNET_POSTGRES_MIGRATION.md) for architecture, setup steps, and hardening recommendations.
+
+## Legacy app
+
+The original React prototype files are still present at repository root for reference during transition.
 
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Ubuntu install and deploy
+
+See [INSTALL_UBUNTU.md](./INSTALL_UBUNTU.md) for zip export, Ubuntu setup, and container deployment instructions.

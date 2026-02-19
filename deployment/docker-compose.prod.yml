@@ -1,0 +1,41 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: workbench
+      POSTGRES_USER: workbench_user
+      POSTGRES_PASSWORD: workbench_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../backend/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U workbench_user -d workbench"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ../backend/src/Workbench.Api
+      dockerfile: Dockerfile
+    environment:
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=workbench;Username=workbench_user;Password=workbench_password
+      ASPNETCORE_ENVIRONMENT: Production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+
+  web:
+    build:
+      context: ../frontend-angular
+      dockerfile: Dockerfile
+    depends_on:
+      - api
+    ports:
+      - "4200:80"
+
+volumes:
+  postgres_data:
