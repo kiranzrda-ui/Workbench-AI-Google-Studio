@@ -1,0 +1,7 @@
+body { margin: 0; font-family: Inter, Arial, sans-serif; }
+.shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+.sidebar { background: #0f172a; color: #fff; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.sidebar a { color: #cbd5e1; text-decoration: none; padding: 8px; border-radius: 6px; }
+.sidebar a.active, .sidebar a:hover { background: #1e293b; color: #fff; }
+.content { padding: 24px; }
+textarea { width: min(800px, 100%); margin-bottom: 8px; }
